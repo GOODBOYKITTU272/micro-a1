@@ -93,6 +93,15 @@ function getJobAccurateRate(job) {
     rateMap.set(j.job_id, getJobAccurateRate(j));
   });
 
+  const languageKeywords = ['vietnamese', 'cantonese', 'japanese', 'georgian', 'german', 'spanish', 'mandarin', 'french', 'korean', 'russian', 'arabic'];
+  function requiresSpecificLanguage(jobName) {
+    const lower = (jobName || '').toLowerCase();
+    for (const lang of languageKeywords) {
+      if (lower.includes(lang)) return lang;
+    }
+    return null;
+  }
+
   const rules = [
     // 1. Legal & Compliance
     {
@@ -237,6 +246,13 @@ function getJobAccurateRate(job) {
       if (r.pattern.test(text)) {
         for (const job of r.roles) {
           if (addedJobIds.has(job.job_id)) continue;
+
+          // Language guard: if job requires a specific language, candidate MUST match that language
+          const langReq = requiresSpecificLanguage(job.job_name);
+          if (langReq && !text.toLowerCase().includes(langReq)) {
+            continue;
+          }
+
           addedJobIds.add(job.job_id);
 
           const rates = rateMap.get(job.job_id) || { min: 50, max: 120 };

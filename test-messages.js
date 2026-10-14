@@ -73,16 +73,16 @@ function generateMessage(conn) {
 
 Hope you're doing well!
 
-We're connecting talented professionals with **leading global AI research projects** and are currently onboarding for the role of **${roleName}**.
+We're connecting talented professionals with leading global AI research projects and are currently onboarding for the role of ${roleName}.
 
-🔹 **Remote:** 100% work from anywhere  
-🔹 **Flexible:** Part-time or full-time, alongside your current role  
-🔹 **Compensation:** ${payDisplay}  
-🔹 **Projects:** Cutting-edge AI research and specialized technical projects
+🔹 Remote: 100% work from anywhere
+🔹 Flexible: Part-time or full-time, alongside your current role
+🔹 Compensation: ${payDisplay}
+🔹 Projects: Cutting-edge AI research and specialized technical projects
 
-**Your professional background and expertise appear to align well with this opportunity**, and we believe it could be a great fit for your experience and interests.
+Your professional background and expertise appear to align well with this opportunity, and we believe it could be a great fit for your experience and interests.
 
-**Apply here:** ${cleanUrl}
+Apply here: ${cleanUrl}
 
 We'd be delighted to have you explore this opportunity and potentially collaborate on exciting AI research projects.
 
@@ -132,20 +132,24 @@ async function runTests() {
 
     // Assertions
     const hasCompetitivePlaceholder = msg.includes("Competitive rate paid in USD");
+    const hasAsterisks = msg.includes("**");
     const hasUsd = msg.includes("USD");
     const hasInr = msg.includes("INR") && msg.includes("₹");
-    const hasBlueBullets = msg.includes("🔹 **Remote:**") && msg.includes("🔹 **Compensation:**");
+    const hasBlueBullets = msg.includes("🔹 Remote:") && msg.includes("🔹 Compensation:");
     const singleJobCheck = jobs.length === 1;
 
     console.log(`--------------------------------------------------------------------------------`);
     console.log(`Test Persona: ${q.label}`);
     console.log(`Candidate: ${conn.full_name} (${conn.position} at ${conn.company || 'N/A'})`);
     console.log(`Assigned Job (Strictly 1): ${topRole.name} (Reward: +$${topRole.reward})`);
-    console.log(`Verification: Single Job = ${singleJobCheck ? '✓' : '✗'}, Dual Currency Pay = ${hasUsd && hasInr ? '✓' : '✗'}, No Placeholder = ${!hasCompetitivePlaceholder ? '✓' : '✗'}`);
+    console.log(`Verification: Single Job = ${singleJobCheck ? '✓' : '✗'}, Dual Currency Pay = ${hasUsd && hasInr ? '✓' : '✗'}, No Asterisks = ${!hasAsterisks ? '✓' : '✗'}`);
     console.log(`\nGenerated Outreach Message:\n`);
     console.log(msg);
     console.log(`\n`);
 
+    if (hasAsterisks) {
+      throw new Error(`Failed: Raw markdown asterisks "**" found in message for ${conn.full_name}!`);
+    }
     if (hasCompetitivePlaceholder) {
       throw new Error(`Failed: Placeholder "Competitive rate paid in USD" found in message for ${conn.full_name}`);
     }

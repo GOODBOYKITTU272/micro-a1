@@ -113,16 +113,16 @@ function composeMessage(candidate, job, shortUrl) {
 
 Hope you're doing well!
 
-We're connecting talented professionals with **leading global AI research projects** and are currently onboarding for the role of **${roleName}**.
+We're connecting talented professionals with leading global AI research projects and are currently onboarding for the role of ${roleName}.
 
-🔹 **Remote:** 100% work from anywhere  
-🔹 **Flexible:** Part-time or full-time, alongside your current role  
-🔹 **Compensation:** ${payDisplay}  
-🔹 **Projects:** Cutting-edge AI research and specialized technical projects
+🔹 Remote: 100% work from anywhere
+🔹 Flexible: Part-time or full-time, alongside your current role
+🔹 Compensation: ${payDisplay}
+🔹 Projects: Cutting-edge AI research and specialized technical projects
 
-**Your professional background and expertise appear to align well with this opportunity**, and we believe it could be a great fit for your experience and interests.
+Your professional background and expertise appear to align well with this opportunity, and we believe it could be a great fit for your experience and interests.
 
-**Apply here:** ${shortUrl}
+Apply here: ${shortUrl}
 
 We'd be delighted to have you explore this opportunity and potentially collaborate on exciting AI research projects.
 
