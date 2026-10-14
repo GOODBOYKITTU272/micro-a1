@@ -593,14 +593,21 @@
               <div class="text-[10px] text-slate-400 mt-0.5">Top bounty opportunity</div>
             </td>
 
-            <!-- Reach Out -->
+            <!-- Reach Out (Mercor Style: in icon + m Intro button) -->
             <td class="py-4 px-5">
               <div class="flex items-center gap-2">
-                <button onclick="quickLaunchIntro(${c.id})" title="1-Click Launch: Copy message & Open LinkedIn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20">
-                  <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-                  <span>Launch DM</span>
+                ${c.linkedin_url ? `
+                  <a href="${c.linkedin_url}" target="_blank" title="View LinkedIn Profile" class="w-8 h-8 rounded-xl bg-[#0077b5] hover:bg-[#006097] text-white flex items-center justify-center transition-all shadow-sm shrink-0">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                  </a>
+                ` : ''}
+
+                <button onclick="quickLaunchIntro(${c.id})" title="Click to copy message & open direct LinkedIn chat" class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-900 border border-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
+                  <span class="w-4 h-4 rounded bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px]">m</span>
+                  <span>Intro</span>
                 </button>
-                <button onclick="openIntroModal(${c.id})" title="Preview & edit message" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-medium">
+
+                <button onclick="openIntroModal(${c.id})" title="Preview & edit message" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-medium">
                   Preview
                 </button>
                 ${c.email ? `
@@ -782,12 +789,31 @@
         if (data.shortUrl) linkToUse = data.shortUrl;
       } catch (e) {}
 
-      const msg = `Hi ${conn.first_name || 'there'},\n\nI'm collaborating with micro1, an AI company connecting top talent with global AI projects.\n\nThey're currently onboarding for:\n${topRole.name}\n\nIf you're interested, you can apply directly through this referral link:\n${linkToUse}\n\nApplications are reviewed by the micro1 team, and they will reach out directly if there's a match.`;
+      function formatFirstName(raw) {
+        if (!raw) return 'there';
+        const first = raw.trim().split(/\s+/)[0].replace(/[^a-zA-Z\u00C0-\u024F]/g, '');
+        if (!first) return 'there';
+        return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+      }
 
-      // Copy to clipboard
+      const firstName = formatFirstName(conn.first_name || conn.full_name);
+      const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
+
+      const msg = `Hi ${firstName},\n\nI'm collaborating with micro1, a leading AI company that connects top talent with global AI projects.\n\nThey're currently onboarding for the following roles: ${roleName}.\n\nIf you're interested, you can apply directly through this referral link:\n${linkToUse}\n\nApplications are reviewed by the micro1 team, and they will reach out directly if there's a match.`;
+
+      // Copy exact message to clipboard
       await navigator.clipboard.writeText(msg);
 
-      // Update status
+      // Extract LinkedIn recipient username/slug
+      const slugMatch = (conn.linkedin_url || '').match(/\/in\/([^/?#]+)/);
+      const directMessageUrl = slugMatch
+        ? `https://www.linkedin.com/messaging/thread/new/?recipient=${slugMatch[1]}`
+        : (conn.linkedin_url || 'https://www.linkedin.com/messaging/');
+
+      // Open LinkedIn direct message screen in new tab
+      window.open(directMessageUrl, '_blank');
+
+      // Update status to Intro Sent
       await fetch(`/api/connections/${conn.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -797,12 +823,7 @@
       // Start pacing timer
       startPacingTimer();
 
-      showToast(`Copied short message for ${conn.full_name}! Opening LinkedIn...`);
-
-      // Open LinkedIn
-      if (conn.linkedin_url) {
-        window.open(conn.linkedin_url, '_blank');
-      }
+      showToast(`📋 Message copied for ${firstName}! Opening direct LinkedIn chat — press Cmd+V to paste & Send!`);
 
       loadConnections();
       loadStats();
