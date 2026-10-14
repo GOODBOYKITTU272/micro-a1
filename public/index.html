@@ -371,63 +371,125 @@
     <!-- TAB 4: DROP RESUME & MATCH STUDIO          -->
     <!-- ========================================== -->
     <div id="view-resume" class="hidden space-y-6">
-      <div class="bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-900 border border-purple-500/30 rounded-2xl p-6 shadow-xl backdrop-blur">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold">
-            <i data-lucide="sparkles" class="w-5 h-5"></i>
+      <div class="bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-900 border border-purple-500/30 rounded-2xl p-6 shadow-xl backdrop-blur space-y-5">
+        <!-- Studio Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-500/20 pb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-lg shadow-purple-600/30">
+              <i data-lucide="sparkles" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-white flex items-center gap-2">
+                <span>AI Resume Matcher Studio</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">281 micro1 Jobs Active</span>
+              </h2>
+              <p class="text-xs text-slate-400">Upload or drop any candidate PDF resume to automatically extract text & discover high-paying matching roles</p>
+            </div>
           </div>
-          <div>
-            <h2 class="text-base font-bold text-white flex items-center gap-2">
-              AI Resume Matcher Studio
-              <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">281 micro1 Jobs Active</span>
-            </h2>
-            <p class="text-xs text-slate-400">Drop or paste any candidate resume to instantly discover their top-paying micro1 matching roles</p>
+
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20 flex items-center gap-1.5">
+              <i data-lucide="file-check-2" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>PDF.js & Word Parser Active</span>
+            </span>
           </div>
         </div>
 
-        <div class="space-y-4">
-          <!-- Textarea & Upload Options -->
-          <div>
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-              <label class="text-xs font-semibold text-slate-300">Candidate Resume or Profile Text (PDF, Word, or Text):</label>
-              <div class="flex flex-wrap items-center gap-2">
-                <input type="file" id="resume-file-input" class="hidden" accept=".pdf,.doc,.docx,.txt,.md,.json" onchange="handleResumeFileUpload(event)" />
-                <button type="button" onclick="document.getElementById('resume-file-input').click()" class="text-xs text-indigo-300 hover:text-white font-semibold flex items-center gap-1.5 bg-indigo-600/30 hover:bg-indigo-600/50 px-3 py-1.5 rounded-lg border border-indigo-500/40 transition-all">
-                  <i data-lucide="file-up" class="w-3.5 h-3.5 text-indigo-400"></i> Upload PDF / Word / Text
-                </button>
-                <button type="button" onclick="loadSampleVietnamesePsychiatrist()" class="text-xs text-emerald-300 hover:text-white font-medium bg-emerald-500/20 hover:bg-emerald-500/30 px-2.5 py-1.5 rounded-lg border border-emerald-500/30 transition-all">
-                  Sample: Vietnamese Psychiatrist
-                </button>
-                <button type="button" onclick="loadSampleResumeText()" class="text-xs text-purple-300 hover:text-white font-medium bg-purple-500/20 hover:bg-purple-500/30 px-2.5 py-1.5 rounded-lg border border-purple-500/30 transition-all">
-                  Sample: GitHub Maintainer
-                </button>
-              </div>
+        <!-- 1. THE HERO PDF DROPZONE (IN FIRST PLACE!) -->
+        <div
+          id="resume-dropzone"
+          onclick="document.getElementById('resume-file-input').click()"
+          ondragover="event.preventDefault(); this.classList.add('border-purple-400', 'bg-purple-950/20');"
+          ondragleave="this.classList.remove('border-purple-400', 'bg-purple-950/20');"
+          ondrop="handleResumeDrop(event)"
+          class="border-2 border-dashed border-indigo-500/40 hover:border-purple-400 bg-slate-950/70 hover:bg-slate-950/95 rounded-2xl p-7 text-center cursor-pointer transition-all group relative"
+        >
+          <input type="file" id="resume-file-input" class="hidden" accept=".pdf,.doc,.docx,.txt,.md,.json" onchange="handleResumeFileUpload(event)" />
+          
+          <div class="flex flex-col items-center justify-center space-y-3">
+            <div class="w-16 h-16 rounded-2xl bg-indigo-600/20 group-hover:bg-purple-600/30 text-indigo-400 group-hover:text-purple-300 border border-indigo-500/30 group-hover:border-purple-500/50 flex items-center justify-center transition-all shadow-lg group-hover:scale-105">
+              <i data-lucide="file-up" class="w-8 h-8"></i>
             </div>
-            <textarea
-              id="resume-input-text"
-              rows="6"
-              ondragover="event.preventDefault(); this.classList.add('border-purple-400');"
-              ondragleave="this.classList.remove('border-purple-400');"
-              ondrop="handleResumeDrop(event)"
-              placeholder="Paste candidate resume, bio, LinkedIn experience, or drag & drop resume file here..."
-              class="w-full p-4 bg-slate-950/80 border border-slate-700/80 rounded-xl text-slate-200 text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-purple-500 font-sans custom-scrollbar transition-all"
-            ></textarea>
+            
+            <div class="space-y-1">
+              <h3 class="text-sm font-bold text-white group-hover:text-indigo-200 transition-colors">
+                Drop Candidate Resume Here (PDF, Word, or Text)
+              </h3>
+              <p class="text-xs text-slate-400 max-w-md mx-auto">
+                Drag & drop your file here, or <span class="text-indigo-400 group-hover:text-purple-300 underline font-semibold">browse files</span>. The built-in PDF parser extracts all text, credentials, and skills automatically.
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-2 pt-1 text-[11px] text-slate-400">
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700/80 text-slate-300 font-medium">📄 PDF (.pdf)</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700/80 text-slate-300 font-medium">📝 Word (.docx)</span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700/80 text-slate-300 font-medium">📋 Plain Text (.txt)</span>
+            </div>
           </div>
 
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-            <div class="text-[11px] text-slate-400 flex items-center gap-2">
-              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-              <span>Evaluated against 281 active roles with domain barrier isolation</span>
+          <!-- Active File Banner (Populated when a file is parsed) -->
+          <div id="dropzone-file-status" class="hidden mt-4 pt-4 border-t border-slate-800 flex items-center justify-between text-xs bg-slate-900/90 rounded-xl p-3 border border-indigo-500/30">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                <i data-lucide="check" class="w-4 h-4"></i>
+              </div>
+              <div class="text-left">
+                <div id="dropzone-filename" class="font-bold text-white">candidate_resume.pdf</div>
+                <div id="dropzone-filemeta" class="text-[11px] text-slate-400">Extracted text successfully</div>
+              </div>
             </div>
-            <button
-              id="btn-analyze-resume"
-              onclick="analyzeAndMatchResume()"
-              class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 transition-all active:scale-95"
-            >
-              <i data-lucide="zap" class="w-4 h-4"></i>
-              <span>⚡ Analyze & Match with AI</span>
+            <span class="text-[11px] text-indigo-400 hover:text-indigo-300 font-semibold underline">Upload New File</span>
+          </div>
+        </div>
+
+        <!-- 2. QUICK SAMPLES BAR -->
+        <div class="flex flex-wrap items-center justify-between gap-3 text-xs bg-slate-950/60 p-3.5 rounded-xl border border-slate-800">
+          <div class="flex items-center gap-2 text-slate-400">
+            <i data-lucide="sparkle" class="w-4 h-4 text-purple-400"></i>
+            <span class="font-semibold text-slate-300">Quick Test Samples:</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="loadSampleVietnamesePsychiatrist()" class="px-3 py-1.5 rounded-lg font-semibold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 transition-all shadow-sm">
+              <span>🇻🇳 Sample: Vietnamese Psychiatrist (+$3,000 Bounty)</span>
+            </button>
+            <button type="button" onclick="loadSampleResumeText()" class="px-3 py-1.5 rounded-lg font-semibold bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 flex items-center gap-1.5 transition-all shadow-sm">
+              <span>💻 Sample: Open Source Maintainer ($150-$300/hr)</span>
             </button>
           </div>
+        </div>
+
+        <!-- 3. REVIEW / EDIT EXTRACTED TEXT -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <span>Extracted Resume Text & Profile Content:</span>
+              <span id="resume-char-count" class="text-[11px] font-normal text-slate-400">(0 characters)</span>
+            </label>
+            <button type="button" onclick="clearResumeInput()" class="text-[11px] text-slate-400 hover:text-rose-400 underline">Clear Text</button>
+          </div>
+          <textarea
+            id="resume-input-text"
+            rows="5"
+            oninput="updateResumeCharCount()"
+            placeholder="Parsed resume text appears here automatically when you drop a PDF or Word file above. You can also paste text directly..."
+            class="w-full p-4 bg-slate-950/90 border border-slate-700/80 rounded-xl text-slate-200 text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-purple-500 font-sans custom-scrollbar transition-all"
+          ></textarea>
+        </div>
+
+        <!-- 4. BOTTOM ACTION TOOLBAR -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+          <div class="text-[11px] text-slate-400 flex items-center gap-2">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>Domain barrier isolation active across 281 micro1 roles</span>
+          </div>
+          <button
+            id="btn-analyze-resume"
+            onclick="analyzeAndMatchResume()"
+            class="w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 transition-all active:scale-95"
+          >
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>⚡ Analyze Resume & Find Top Matches</span>
+          </button>
         </div>
       </div>
 
@@ -1516,14 +1578,23 @@
     // ==========================================
 
     if (window.pdfjsLib) {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      try {
+        const workerBlob = new Blob([`importScripts('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js');`], { type: 'application/javascript' });
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
+        window._pdfWorkerConfigured = true;
+      } catch (e) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
     }
 
     async function extractTextFromPdfBuffer(arrayBuffer) {
       if (!window.pdfjsLib) {
         throw new Error('PDF reader library not loaded yet');
       }
-      const loadingTask = window.pdfjsLib.getDocument({ data: arrayBuffer });
+      const loadingTask = window.pdfjsLib.getDocument({
+        data: arrayBuffer,
+        useSystemFonts: true
+      });
       const pdf = await loadingTask.promise;
       let fullText = '';
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
@@ -1543,15 +1614,46 @@
       throw new Error('Word document reader not loaded');
     }
 
+    function updateDropzoneFileBanner(fileName, metaText) {
+      const banner = document.getElementById('dropzone-file-status');
+      const nameEl = document.getElementById('dropzone-filename');
+      const metaEl = document.getElementById('dropzone-filemeta');
+      if (banner && nameEl && metaEl) {
+        nameEl.textContent = fileName;
+        metaEl.textContent = metaText;
+        banner.classList.remove('hidden');
+        lucide.createIcons();
+      }
+    }
+
+    function clearResumeInput() {
+      const input = document.getElementById('resume-input-text');
+      if (input) input.value = '';
+      const banner = document.getElementById('dropzone-file-status');
+      if (banner) banner.classList.add('hidden');
+      updateResumeCharCount();
+      showToast('Resume text cleared.');
+    }
+
+    function updateResumeCharCount() {
+      const input = document.getElementById('resume-input-text');
+      const countEl = document.getElementById('resume-char-count');
+      if (input && countEl) {
+        const len = input.value.length;
+        const words = (input.value.trim().match(/\S+/g) || []).length;
+        countEl.textContent = `(${words} words • ${len} chars)`;
+      }
+    }
+
     async function processResumeFile(file) {
       if (!file) return;
 
-      const fileName = file.name || 'resume';
+      const fileName = file.name || 'resume.pdf';
       const isPdf = fileName.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
       const isDocx = fileName.toLowerCase().endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
       const input = document.getElementById('resume-input-text');
 
-      showToast(`Reading ${fileName}... Please wait a moment.`);
+      showToast(`Reading ${fileName} with PDF parser... Please wait.`);
 
       if (isPdf) {
         const reader = new FileReader();
@@ -1565,11 +1667,14 @@
             }
             if (input) {
               input.value = extractedText;
-              showToast(`Extracted ${extractedText.length} characters from ${fileName}! Click "Analyze & Match".`);
+              const wordsCount = (extractedText.match(/\S+/g) || []).length;
+              updateDropzoneFileBanner(fileName, `✓ Extracted ${wordsCount} words from PDF document`);
+              updateResumeCharCount();
+              showToast(`✓ Extracted ${wordsCount} words from ${fileName}! Click "Analyze Resume" to match.`);
             }
           } catch (err) {
             console.error('PDF error:', err);
-            showToast('Could not read PDF text directly. Please open and copy-paste text.');
+            showToast('Could not read PDF directly. Please open file & copy-paste text.');
           }
         };
         reader.readAsArrayBuffer(file);
@@ -1584,7 +1689,10 @@
             const extractedText = await extractTextFromDocxBuffer(arrayBuffer);
             if (input) {
               input.value = extractedText;
-              showToast(`Extracted text from ${fileName}! Click "Analyze & Match".`);
+              const wordsCount = (extractedText.match(/\S+/g) || []).length;
+              updateDropzoneFileBanner(fileName, `✓ Extracted ${wordsCount} words from Word document`);
+              updateResumeCharCount();
+              showToast(`✓ Extracted ${wordsCount} words from ${fileName}! Click "Analyze Resume" to match.`);
             }
           } catch (err) {
             console.error('Docx error:', err);
@@ -1600,7 +1708,10 @@
       reader.onload = function(e) {
         if (input) {
           input.value = e.target.result;
-          showToast(`Loaded ${fileName} successfully! Click "Analyze & Match".`);
+          const wordsCount = (e.target.result.match(/\S+/g) || []).length;
+          updateDropzoneFileBanner(fileName, `✓ Loaded ${wordsCount} words from text file`);
+          updateResumeCharCount();
+          showToast(`Loaded ${fileName} successfully! Click "Analyze Resume" to match.`);
         }
       };
       reader.readAsText(file);
@@ -1640,7 +1751,9 @@ Senior Staff Psychiatrist | Houston Behavioral Health Institute (2018 – Presen
       const input = document.getElementById('resume-input-text');
       if (input) {
         input.value = sample;
-        showToast('Sample Bilingual Vietnamese Psychiatrist resume loaded! Click "Analyze & Match".');
+        updateDropzoneFileBanner('Sample_Vietnamese_Psychiatrist.pdf', '✓ Loaded 115 words • Board-Certified Psychiatrist (MD)');
+        updateResumeCharCount();
+        showToast('Sample Bilingual Vietnamese Psychiatrist resume loaded! Click "Analyze Resume".');
       }
     }
 
@@ -1667,7 +1780,9 @@ Principal Open Source Maintainer | Cloud Systems Foundation (2021 – Present)
       const input = document.getElementById('resume-input-text');
       if (input) {
         input.value = sample;
-        showToast('Sample Open Source Maintainer resume loaded! Click "Analyze & Match" to evaluate.');
+        updateDropzoneFileBanner('Sample_GitHub_Maintainer.pdf', '✓ Loaded 160 words • Principal Systems Engineer');
+        updateResumeCharCount();
+        showToast('Sample Open Source Maintainer resume loaded! Click "Analyze Resume".');
       }
     }
 
