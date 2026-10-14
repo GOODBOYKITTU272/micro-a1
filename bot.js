@@ -113,7 +113,7 @@ async function main() {
   console.log(`===============================================================`);
   console.log(`🛡️  Anti-Detection: Multi-step mouse moves, human typing, jitter`);
   console.log(`⏱️  Pacing: 25-40s cooldown between candidates`);
-  console.log(`📦 Batch Limit: ${BATCH_LIMIT} candidates per run`);
+  console.log(`📦 Target Goal: ${TARGET_SENDS} referral intros per run`);
   console.log(`===============================================================\n`);
 
   let browser;
