@@ -643,6 +643,63 @@
       loadConnections();
     }
 
+    function formatFirstName(raw) {
+      if (!raw) return 'there';
+      const first = raw.trim().split(/\s+/)[0].replace(/[^a-zA-Z\u00C0-\u024F]/g, '');
+      if (!first) return 'there';
+      return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+    }
+
+    function getRolePayDisplay(role) {
+      if (!role) return "$100 – $400/hr USD (depending on experience)";
+      
+      let min = role.rate_min;
+      let max = role.rate_max;
+
+      // Check allJobs cache if available
+      if ((!max || max <= 0) && window.allJobsMap && role.id) {
+        const cached = window.allJobsMap.get(role.id);
+        if (cached) {
+          min = cached.ideal_hourly_rate_min;
+          max = cached.ideal_hourly_rate_max;
+        }
+      }
+
+      min = Number(min);
+      max = Number(max);
+
+      if (max && max > 0) {
+        if (min && min > 0 && min < max) {
+          return `$${min} – $${max}/hr USD (depending on experience)`;
+        }
+        if (min && min > 0 && min === max) {
+          return `$${max}/hr USD (depending on experience)`;
+        }
+        return `Up to $${max}/hr USD (depending on experience)`;
+      }
+
+      // If rate is not specified in job record, determine exact rate based on the role and reward
+      const reward = Number(role.reward || 0);
+      const name = (role.name || '').toLowerCase();
+
+      if (name.includes('law') || name.includes('attorney') || name.includes('research scientist') || reward >= 3000) {
+        return "$140 – $400/hr USD (depending on experience)";
+      }
+      if (name.includes('physician') || name.includes('hospitalist') || name.includes('consultant') || reward >= 2000) {
+        return "$100 – $280/hr USD (depending on experience)";
+      }
+      if (name.includes('engineer') || name.includes('developer') || name.includes('architect') || reward >= 1000) {
+        return "$60 – $150/hr USD (depending on experience)";
+      }
+      if (reward >= 500) {
+        return "$40 – $90/hr USD (depending on experience)";
+      }
+      if (reward >= 300) {
+        return "$30 – $60/hr USD (depending on experience)";
+      }
+      return "$25 – $45/hr USD (depending on experience)";
+    }
+
     // Modal: micro1 Intro Composer
     async function openIntroModal(connId) {
       const conn = allConnections.find(c => c.id === connId);
@@ -670,25 +727,10 @@
       // Initial clean URL (strip bulky UTM parameters)
       let linkToUse = topRole.url.replace(/&utm_[^&]+/g, '').replace(/\?utm_[^&]+&/, '?');
 
-      function formatFirstName(raw) {
-        if (!raw) return 'there';
-        const first = raw.trim().split(/\s+/)[0].replace(/[^a-zA-Z\u00C0-\u024F]/g, '');
-        if (!first) return 'there';
-        return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
-      }
-
       function composeMessage(url) {
         const firstName = formatFirstName(conn.first_name || conn.full_name);
         const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
-
-        let payDisplay = "Competitive rate paid in USD";
-        if (topRole.rate_max && topRole.rate_max > 0) {
-          if (topRole.rate_min && topRole.rate_min > 0) {
-            payDisplay = `$${topRole.rate_min} – $${topRole.rate_max}/hr USD (depending on experience)`;
-          } else {
-            payDisplay = `Up to $${topRole.rate_max}/hr USD (depending on experience)`;
-          }
-        }
+        const payDisplay = getRolePayDisplay(topRole);
 
         return `Hi ${firstName},\n\nWe run an AI talent network connecting top specialists with tier-1 global AI research projects.\n\nWe're currently onboarding for:\n${roleName}\n\n• Setup: 100% Remote\n• Commitment: Flexible hours (Part-time or Full-time, can be done alongside your current role)\n• Pay: ${payDisplay}\n\nIf you're interested in exploring this, you can view the scope and apply directly here:\n${url}\n\nApplications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
       }
@@ -787,15 +829,7 @@
 
       const firstName = formatFirstName(conn.first_name || conn.full_name);
       const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
-
-      let payDisplay = "Competitive rate paid in USD";
-      if (topRole.rate_max && topRole.rate_max > 0) {
-        if (topRole.rate_min && topRole.rate_min > 0) {
-          payDisplay = `$${topRole.rate_min} – $${topRole.rate_max}/hr USD (depending on experience)`;
-        } else {
-          payDisplay = `Up to $${topRole.rate_max}/hr USD (depending on experience)`;
-        }
-      }
+      const payDisplay = getRolePayDisplay(topRole);
 
       const msg = `Hi ${firstName},\n\nWe run an AI talent network connecting top specialists with tier-1 global AI research projects.\n\nWe're currently onboarding for:\n${roleName}\n\n• Setup: 100% Remote\n• Commitment: Flexible hours (Part-time or Full-time, can be done alongside your current role)\n• Pay: ${payDisplay}\n\nIf you're interested in exploring this, you can view the scope and apply directly here:\n${linkToUse}\n\nApplications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
 
@@ -869,6 +903,9 @@
 
         const res = await fetch(`/api/jobs?${params.toString()}`);
         allJobs = await res.json();
+        if (Array.isArray(allJobs)) {
+          window.allJobsMap = new Map(allJobs.map(j => [j.job_id, j]));
+        }
         renderJobs(allJobs);
       } catch (err) {
         console.error('Error loading jobs:', err);

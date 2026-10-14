@@ -50,6 +50,101 @@ async function supabaseFetch(endpoint, options = {}) {
   });
 }
 
+function getJobAccurateRate(job) {
+  const name = (job.job_name || job.name || '').toLowerCase();
+  const reward = Number(job.referral_reward_amount || job.reward || 0);
+  let min = job.ideal_hourly_rate_min != null ? Number(job.ideal_hourly_rate_min) : null;
+  let max = job.ideal_hourly_rate_max != null ? Number(job.ideal_hourly_rate_max) : null;
+
+  if (max && max >= 20 && min && min >= 15 && min <= max) {
+    return { min, max };
+  }
+
+  if (name.includes('research scientist') || name.includes('computational physics')) {
+    return { min: 100, max: 400 };
+  }
+  if (name.includes('lawyer') || name.includes('attorney') || name.includes('counsel') || name.includes('biglaw') || name.includes('litigat')) {
+    return { min: 140, max: 400 };
+  }
+  if (name.includes('physician') || name.includes('hospitalist') || name.includes('psychiatrist') || name.includes('doctor')) {
+    return { min: 120, max: 250 };
+  }
+  if (name.includes('investment banking') || name.includes('m&a') || name.includes('equity research') || name.includes('rates trader')) {
+    return { min: 150, max: 300 };
+  }
+  if (name.includes('member of technical staff') || name.includes('robotics research') || name.includes('coding research') || name.includes('vp of robotics')) {
+    return { min: 100, max: 250 };
+  }
+  if (name.includes('strategic project lead') || name.includes('product owner') || name.includes('enterprise client partner') || name.includes('data partnerships')) {
+    return { min: 90, max: 180 };
+  }
+  if (name.includes('domain researcher')) {
+    return { min: 75, max: 150 };
+  }
+  if (name.includes('senior software') || name.includes('tech lead') || name.includes('architect') || name.includes('principal')) {
+    return { min: 80, max: 160 };
+  }
+  if (name.includes('ml engineer') || name.includes('machine learning') || name.includes('data scientist')) {
+    return { min: 70, max: 150 };
+  }
+  if (name.includes('software engineer') || name.includes('developer') || name.includes('full-stack') || name.includes('backend') || name.includes('frontend')) {
+    return { min: 50, max: 120 };
+  }
+  if (name.includes('accountant') || name.includes('auditor') || name.includes('tax') || name.includes('cpa')) {
+    return { min: 50, max: 100 };
+  }
+  if (name.includes('salesops') || name.includes('crm') || name.includes('revenue systems') || name.includes('salesforce') || name.includes('hubspot')) {
+    return { min: 60, max: 120 };
+  }
+  if (name.includes('brand') || name.includes('creative') || name.includes('video content lead') || name.includes('journalist') || name.includes('editor')) {
+    return { min: 45, max: 90 };
+  }
+  if (name.includes('recruiter') || name.includes('recruitment') || name.includes('talent')) {
+    return { min: 40, max: 80 };
+  }
+  if (name.includes('data analyst') || name.includes('privacy analyst') || name.includes('analytics')) {
+    return { min: 35, max: 70 };
+  }
+  if (name.includes('virtual assistant') || name.includes('community manager')) {
+    return { min: 25, max: 50 };
+  }
+  if (name.includes('transcription') || name.includes('annotat') || name.includes('evaluator') || name.includes('tester')) {
+    return { min: 20, max: 40 };
+  }
+
+  if (reward >= 2000) return { min: 100, max: 250 };
+  if (reward >= 1500) return { min: 80, max: 180 };
+  if (reward >= 1000) return { min: 50, max: 120 };
+  if (reward >= 500) return { min: 35, max: 75 };
+  if (reward >= 300) return { min: 25, max: 50 };
+  return { min: 20, max: 40 };
+}
+
+let jobRateCache = null;
+let lastCacheTime = 0;
+
+async function getJobRateMap() {
+  const now = Date.now();
+  if (jobRateCache && (now - lastCacheTime < 300000)) {
+    return jobRateCache;
+  }
+  try {
+    const res = await supabaseFetch('jobs?select=job_id,job_name,referral_reward_amount,ideal_hourly_rate_min,ideal_hourly_rate_max');
+    const jobs = await res.json();
+    const map = new Map();
+    if (Array.isArray(jobs)) {
+      jobs.forEach(j => {
+        map.set(j.job_id, getJobAccurateRate(j));
+      });
+    }
+    jobRateCache = map;
+    lastCacheTime = now;
+    return map;
+  } catch (err) {
+    return new Map();
+  }
+}
+
 // Main Request Handler
 export async function appHandler(req, res) {
   const method = req.method;
@@ -111,7 +206,22 @@ export async function appHandler(req, res) {
 
       const r = await supabaseFetch(`connections?${params.toString()}`);
       const data = await r.json();
-      return sendJson(res, 200, Array.isArray(data) ? data : []);
+      const rateMap = await getJobRateMap();
+      const enriched = (Array.isArray(data) ? data : []).map(c => {
+        const jobs = Array.isArray(c.matched_jobs) ? c.matched_jobs : [];
+        return {
+          ...c,
+          matched_jobs: jobs.map(j => {
+            const rates = rateMap.get(j.id);
+            return {
+              ...j,
+              rate_min: j.rate_min || rates?.min || null,
+              rate_max: j.rate_max || rates?.max || null
+            };
+          })
+        };
+      });
+      return sendJson(res, 200, enriched);
     }
 
     // 4. Update Connection (Status/Notes)
