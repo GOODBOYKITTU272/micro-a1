@@ -108,6 +108,65 @@
       </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- MAKE LINK SHORTER (QUICK URL SHORTENER)    -->
+    <!-- ========================================== -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/30 rounded-2xl p-4 sm:p-5 shadow-lg mb-8 backdrop-blur">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="scissors" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              Make Link Shorter
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">1-Click TinyURL</span>
+            </h3>
+            <p class="text-xs text-slate-400">Paste your total/long micro1 referral link below — we will make it small & copy it instantly!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2.5">
+        <div class="relative flex-1">
+          <i data-lucide="link" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input
+            id="quick-shorten-input"
+            type="url"
+            placeholder="Paste your long micro1 referral link here (e.g. https://jobs.micro1.ai/post/...)"
+            class="w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            onkeydown="if(event.key === 'Enter') handleQuickShorten()"
+          />
+        </div>
+        <button
+          onclick="handleQuickShorten()"
+          id="quick-shorten-btn"
+          class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all active:scale-95 shrink-0"
+        >
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span>Make It Small</span>
+        </button>
+      </div>
+
+      <!-- Result Card -->
+      <div id="quick-shorten-result" class="hidden mt-3 p-3 bg-slate-800/90 border border-emerald-500/40 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in duration-200">
+        <div class="flex items-center gap-2 truncate">
+          <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+          <span class="text-xs text-slate-300 font-medium shrink-0">Shortened Link:</span>
+          <a id="quick-shorten-link" href="#" target="_blank" class="text-xs font-bold text-emerald-400 hover:underline truncate"></a>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="copyQuickShortenedLink()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow transition-all active:scale-95">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copy Short Link</span>
+          </button>
+          <button onclick="resetQuickShorten()" class="p-1.5 text-slate-400 hover:text-white" title="Clear">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Tab Buttons (Mercor Style) -->
     <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
       <div class="flex items-center gap-3">
@@ -813,6 +872,63 @@
         applyRoleToIntroModal(currentIntroAvailableRoles[idx]);
       }
     };
+
+    // Quick Link Shortener Functions
+    async function handleQuickShorten() {
+      const input = document.getElementById('quick-shorten-input');
+      const btn = document.getElementById('quick-shorten-btn');
+      const resultBox = document.getElementById('quick-shorten-result');
+      const linkElem = document.getElementById('quick-shorten-link');
+      
+      const rawUrl = (input.value || '').trim();
+      if (!rawUrl) {
+        showToast('⚠️ Please paste a link first!');
+        return;
+      }
+
+      // Clean URL (strip bulky tracking parameters if any)
+      const cleanUrl = rawUrl.replace(/&utm_[^&]+/g, '').replace(/\?utm_[^&]+&/, '?');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="inline-block animate-spin mr-1">⏳</span> Making small...';
+
+      try {
+        const res = await fetch(`/api/shorten?url=${encodeURIComponent(cleanUrl)}`);
+        const data = await res.json();
+        
+        if (data.shortUrl) {
+          linkElem.href = data.shortUrl;
+          linkElem.textContent = data.shortUrl;
+          resultBox.classList.remove('hidden');
+          
+          // Auto-copy to clipboard for maximum convenience!
+          await navigator.clipboard.writeText(data.shortUrl);
+          showToast('✨ Link made small & copied to your clipboard!');
+          lucide.createIcons();
+        } else {
+          showToast('Could not shorten URL. Please try again.');
+        }
+      } catch (err) {
+        showToast('Error connecting to shortener service.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i><span>Make It Small</span>';
+        lucide.createIcons();
+      }
+    }
+
+    async function copyQuickShortenedLink() {
+      const link = document.getElementById('quick-shorten-link').textContent;
+      if (link) {
+        await navigator.clipboard.writeText(link);
+        showToast('📋 Short link copied to clipboard!');
+      }
+    }
+
+    function resetQuickShorten() {
+      document.getElementById('quick-shorten-input').value = '';
+      document.getElementById('quick-shorten-result').classList.add('hidden');
+    }
 
     // Modal: micro1 Intro Composer
     async function openIntroModal(connId) {
