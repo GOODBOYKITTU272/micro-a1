@@ -674,7 +674,17 @@
       function composeMessage(url) {
         const firstName = formatFirstName(conn.first_name || conn.full_name);
         const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
-        return `Hi ${firstName},\n\nI'm collaborating with micro1, a leading AI company that connects top talent with global AI projects.\n\nThey're currently onboarding for the following roles: ${roleName}.\n\nIf you're interested, you can apply directly through this referral link:\n${url}\n\nApplications are reviewed by the micro1 team, and they will reach out directly if there's a match.`;
+
+        let payLine = "It's 100% remote with competitive compensation paid in USD.";
+        if (topRole.rate_max && topRole.rate_max > 0) {
+          if (topRole.rate_min && topRole.rate_min > 0) {
+            payLine = `The role is 100% remote with compensation paid in USD ($${topRole.rate_min} – $${topRole.rate_max}/hr depending on experience).`;
+          } else {
+            payLine = `The role is 100% remote with compensation paid in USD (up to $${topRole.rate_max}/hr depending on experience).`;
+          }
+        }
+
+        return `Hi ${firstName},\n\nWe run an AI talent network connecting top specialists with tier-1 global AI projects.\n\nWe're currently onboarding for: ${roleName}.\n\n${payLine}\n\nIf you're interested, you can review the details and apply directly here:\n${url}\n\nApplications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
       }
 
       document.getElementById('intro-message-text').value = composeMessage(linkToUse);
@@ -772,7 +782,16 @@
       const firstName = formatFirstName(conn.first_name || conn.full_name);
       const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
 
-      const msg = `Hi ${firstName},\n\nI'm collaborating with micro1, a leading AI company that connects top talent with global AI projects.\n\nThey're currently onboarding for the following roles: ${roleName}.\n\nIf you're interested, you can apply directly through this referral link:\n${linkToUse}\n\nApplications are reviewed by the micro1 team, and they will reach out directly if there's a match.`;
+      let payLine = "It's 100% remote with competitive compensation paid in USD.";
+      if (topRole.rate_max && topRole.rate_max > 0) {
+        if (topRole.rate_min && topRole.rate_min > 0) {
+          payLine = `The role is 100% remote with compensation paid in USD ($${topRole.rate_min} – $${topRole.rate_max}/hr depending on experience).`;
+        } else {
+          payLine = `The role is 100% remote with compensation paid in USD (up to $${topRole.rate_max}/hr depending on experience).`;
+        }
+      }
+
+      const msg = `Hi ${firstName},\n\nWe run an AI talent network connecting top specialists with tier-1 global AI projects.\n\nWe're currently onboarding for: ${roleName}.\n\n${payLine}\n\nIf you're interested, you can review the details and apply directly here:\n${linkToUse}\n\nApplications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
 
       // Copy exact message to clipboard
       await navigator.clipboard.writeText(msg);

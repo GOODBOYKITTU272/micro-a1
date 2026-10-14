@@ -383,12 +383,27 @@ export function getConnections({ q, minEarnings, topMatchOnly = true, limit = 50
   sql += ' ORDER BY max_potential_earnings DESC, match_count DESC, id ASC LIMIT ? OFFSET ?';
   params.push(parseInt(limit, 10), parseInt(offset, 10));
 
-  const rows = db.prepare(sql).all(...params);
+  const rateMap = new Map();
+  try {
+    db.prepare('SELECT job_id, ideal_hourly_rate_min, ideal_hourly_rate_max FROM jobs').all().forEach(j => {
+      rateMap.set(j.job_id, { min: j.ideal_hourly_rate_min, max: j.ideal_hourly_rate_max });
+    });
+  } catch (e) {}
 
-  return rows.map(r => ({
-    ...r,
-    matched_jobs: r.matched_jobs ? JSON.parse(r.matched_jobs) : []
-  }));
+  return rows.map(r => {
+    const jobs = r.matched_jobs ? JSON.parse(r.matched_jobs) : [];
+    return {
+      ...r,
+      matched_jobs: jobs.map(j => {
+        const rates = rateMap.get(j.id);
+        return {
+          ...j,
+          rate_min: rates?.min || null,
+          rate_max: rates?.max || null
+        };
+      })
+    };
+  });
 }
 
 export function getConnectionStats() {

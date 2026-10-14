@@ -57,20 +57,40 @@ function formatFirstName(raw) {
   return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
 }
 
-// Generate the concise 4-sentence Mercor-style message
+const jobRates = new Map();
+try {
+  db.prepare('SELECT job_id, ideal_hourly_rate_min, ideal_hourly_rate_max FROM jobs').all().forEach(j => {
+    jobRates.set(j.job_id, { min: j.ideal_hourly_rate_min, max: j.ideal_hourly_rate_max });
+  });
+} catch (e) {}
+
+// Generate the high-converting AI talent network message
 function composeMessage(candidate, job, shortUrl) {
   const firstName = formatFirstName(candidate.first_name || candidate.full_name);
   const roleName = (job.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
+  const rates = jobRates.get(job.id);
+
+  let payLine = "It's 100% remote with competitive compensation paid in USD.";
+  if (rates && rates.max > 0) {
+    if (rates.min > 0) {
+      payLine = `The role is 100% remote with compensation paid in USD ($${rates.min} – $${rates.max}/hr depending on experience).`;
+    } else {
+      payLine = `The role is 100% remote with compensation paid in USD (up to $${rates.max}/hr depending on experience).`;
+    }
+  }
+
   return `Hi ${firstName},
 
-I'm collaborating with micro1, a leading AI company that connects top talent with global AI projects.
+We run an AI talent network connecting top specialists with tier-1 global AI projects.
 
-They're currently onboarding for the following roles: ${roleName}.
+We're currently onboarding for: ${roleName}.
 
-If you're interested, you can apply directly through this referral link:
+${payLine}
+
+If you're interested, you can review the details and apply directly here:
 ${shortUrl}
 
-Applications are reviewed by the micro1 team, and they will reach out directly if there's a match.`;
+Applications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
 }
 
 // Smooth mouse movement with multi-step interpolation
