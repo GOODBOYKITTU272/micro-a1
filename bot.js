@@ -16,8 +16,8 @@ const args = process.argv.slice(2);
 const isStepMode = args.includes('--step');
 const isAutoMode = args.includes('--auto');
 const isDryRun = args.includes('--dry-run');
-const limitArg = args.find(a => a.startsWith('--limit='));
-const BATCH_LIMIT = limitArg ? parseInt(limitArg.split('=')[1], 10) : 10;
+const limitArg = args.find(a => a.startsWith('--limit=') || a.startsWith('--target='));
+const TARGET_SENDS = limitArg ? parseInt(limitArg.split('=')[1], 10) : 20;
 const portArg = args.find(a => a.startsWith('--port='));
 const CDP_PORT = portArg ? parseInt(portArg.split('=')[1], 10) : 9222;
 
@@ -165,23 +165,20 @@ async function main() {
   }
 
   // Step 2: Fetch candidates from SQLite database
-  const candidates = db.prepare(`
+  const candidatePool = db.prepare(`
     SELECT * FROM connections
     WHERE match_count > 0 AND (status = 'New' OR status IS NULL)
     ORDER BY max_potential_earnings DESC, match_count DESC, id ASC
     LIMIT ?
-  `).all(BATCH_LIMIT);
+  `).all(Math.max(TARGET_SENDS * 3, 60));
 
-  if (candidates.length === 0) {
+  if (candidatePool.length === 0) {
     console.log(`🎉 No uncontacted matched candidates found in database! (All have been messaged or reviewed).`);
     return;
   }
 
-  console.log(`🎯 Loaded ${candidates.length} top-ranked candidates for this batch:`);
-  candidates.forEach((c, idx) => {
-    console.log(`  ${idx + 1}. ${c.full_name.padEnd(26)} | $${c.max_potential_earnings} | ${c.position || 'Professional'} @ ${c.company || 'N/A'}`);
-  });
-  console.log(``);
+  console.log(`🎯 Target Goal: Send ${TARGET_SENDS} referral intros and then stop.`);
+  console.log(`📋 Candidate queue loaded: ${candidatePool.length} top candidates available.\n`);
 
   const mode = isAutoMode ? 'auto' : (isStepMode ? 'step' : 'interactive');
   let runMode = mode;
@@ -190,18 +187,23 @@ async function main() {
     runMode = choice.trim() === '2' ? 'auto' : 'step';
   }
 
-  console.log(`\n🚀 Starting batch in ${runMode.toUpperCase()} mode...\n`);
+  console.log(`\n🚀 Starting batch in ${runMode.toUpperCase()} mode (Target: ${TARGET_SENDS} sends)...\n`);
 
   let sentCount = 0;
   let skippedCount = 0;
 
-  for (let i = 0; i < candidates.length; i++) {
-    const candidate = candidates[i];
+  for (let i = 0; i < candidatePool.length; i++) {
+    if (sentCount >= TARGET_SENDS) {
+      console.log(`\n🎉 Target Goal Reached! Successfully sent ${sentCount}/${TARGET_SENDS} referral intros. Stopping cleanly!`);
+      break;
+    }
+
+    const candidate = candidatePool[i];
     const matchedJobs = JSON.parse(candidate.matched_jobs || '[]');
     const topJob = matchedJobs[0] || { name: 'AI Specialist', reward: 1000, url: 'https://jobs.micro1.ai' };
 
     console.log(`---------------------------------------------------------------`);
-    console.log(`👤 [${i + 1}/${candidates.length}] ${candidate.full_name}`);
+    console.log(`👤 [Progress: ${sentCount}/${TARGET_SENDS} Sent] ${candidate.full_name}`);
     console.log(`💼 ${candidate.position} at ${candidate.company}`);
     console.log(`🎯 Matched: ${topJob.name} ($${topJob.reward})`);
     console.log(`🔗 Profile: ${candidate.linkedin_url}`);
@@ -387,8 +389,13 @@ async function main() {
         }
       }
 
+      if (sentCount >= TARGET_SENDS) {
+        console.log(`\n🎉 Target Goal Reached! Successfully sent ${sentCount}/${TARGET_SENDS} referral intros. Stopping cleanly!`);
+        break;
+      }
+
       // Safe pacing delay before next candidate
-      if (i < candidates.length - 1) {
+      if (i < candidatePool.length - 1) {
         const cooldownSeconds = getRandomInt(25, 40);
         await safePacingCooldown(cooldownSeconds);
       }
