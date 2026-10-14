@@ -383,6 +383,8 @@ export function getConnections({ q, minEarnings, topMatchOnly = true, limit = 50
   sql += ' ORDER BY max_potential_earnings DESC, match_count DESC, id ASC LIMIT ? OFFSET ?';
   params.push(parseInt(limit, 10), parseInt(offset, 10));
 
+  const rows = db.prepare(sql).all(...params);
+
   const rateMap = new Map();
   try {
     db.prepare('SELECT job_id, ideal_hourly_rate_min, ideal_hourly_rate_max FROM jobs').all().forEach(j => {
