@@ -38,13 +38,19 @@ export function parseResume(resumeText) {
     }
   }
 
-  // Extract programming languages & technologies
+  // Extract programming languages, clinical skills & spoken languages
   const techStack = [
     'python', 'javascript', 'typescript', 'c++', 'c#', 'golang', 'go', 'rust', 'java',
     'ruby', 'php', 'swift', 'kotlin', 'react', 'node', 'vue', 'angular', 'django', 'fastapi',
     'flask', 'docker', 'kubernetes', 'aws', 'gcp', 'azure', 'linux', 'git', 'github',
     'pytorch', 'tensorflow', 'llm', 'nlp', 'sql', 'postgres', 'mongodb', 'graphql',
-    'html', 'css', 'tailwind'
+    'html', 'css', 'tailwind',
+    // Spoken languages & translation
+    'vietnamese', 'cantonese', 'japanese', 'georgian', 'korean', 'spanish', 'mandarin', 'bilingual',
+    // Clinical & Medical specialties
+    'psychiatry', 'psychology', 'psychological assessment', 'clinical documentation', 'hospitalist',
+    'internal medicine', 'pediatrics', 'family medicine', 'medical record review', 'clinical judgment',
+    'patient assessment', 'diagnostic analysis', 'medicine', 'healthcare protocols'
   ];
 
   const detectedSkills = [];
