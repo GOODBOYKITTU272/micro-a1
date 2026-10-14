@@ -1,0 +1,26 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+env/
+venv/
+
+# Database & Private CSV
+*.db
+*.sqlite
+*.sqlite3
+Connections.csv
+
+# Logs & temp
+*.log
+.DS_Store
+dist/
+build/
+.cache/
+.chrome-session/
