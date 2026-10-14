@@ -645,13 +645,18 @@
 
     function formatFirstName(raw) {
       if (!raw) return 'there';
-      const first = raw.trim().split(/\s+/)[0].replace(/[^a-zA-Z\u00C0-\u024F]/g, '');
-      if (!first) return 'there';
+      const tokens = raw.trim().split(/\s+/).map(t => t.replace(/[^a-zA-Z\u00C0-\u024F]/g, '')).filter(Boolean);
+      if (!tokens.length) return 'there';
+      const titles = new Set(['dr', 'mr', 'mrs', 'ms', 'prof', 'doctor', 'sir', 'madam']);
+      let first = tokens[0];
+      if (titles.has(first.toLowerCase()) && tokens.length > 1) {
+        first = tokens[1];
+      }
       return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
     }
 
     function getRolePayDisplay(role) {
-      if (!role) return "$100 – $400/hr USD (depending on experience)";
+      if (!role) return "$100 – $400/hr USD (~₹8,400 – ₹33,600/hr INR) (depending on experience)";
       
       let min = role.rate_min;
       let max = role.rate_max;
@@ -668,36 +673,63 @@
       min = Number(min);
       max = Number(max);
 
-      if (max && max > 0) {
-        if (min && min > 0 && min < max) {
-          return `$${min} – $${max}/hr USD (depending on experience)`;
-        }
-        if (min && min > 0 && min === max) {
-          return `$${max}/hr USD (depending on experience)`;
-        }
-        return `Up to $${max}/hr USD (depending on experience)`;
+      // If valid rate numbers already exist and are not typos
+      if (max && max >= 20 && min && min >= 15 && min <= max) {
+        const inrMin = Math.round(min * 84).toLocaleString('en-IN');
+        const inrMax = Math.round(max * 84).toLocaleString('en-IN');
+        return `$${min} – $${max}/hr USD (~₹${inrMin} – ₹${inrMax}/hr INR) (depending on experience)`;
       }
 
-      // If rate is not specified in job record, determine exact rate based on the role and reward
-      const reward = Number(role.reward || 0);
+      if (max && max >= 20) {
+        const inrMax = Math.round(max * 84).toLocaleString('en-IN');
+        if (min && min >= 15 && min === max) {
+          return `$${max}/hr USD (~₹${inrMax}/hr INR) (depending on experience)`;
+        }
+        return `Up to $${max}/hr USD (~₹${inrMax}/hr INR) (depending on experience)`;
+      }
+
+      // If rate is missing or had typos in API (like $2/hr), compute accurate rate based on role name and reward
       const name = (role.name || '').toLowerCase();
+      const reward = Number(role.reward || 0);
 
-      if (name.includes('law') || name.includes('attorney') || name.includes('research scientist') || reward >= 3000) {
-        return "$140 – $400/hr USD (depending on experience)";
+      let calcMin = 50;
+      let calcMax = 120;
+
+      if (name.includes('research scientist') || name.includes('computational physics')) {
+        calcMin = 100; calcMax = 400;
+      } else if (name.includes('law') || name.includes('attorney') || name.includes('counsel') || name.includes('litigat')) {
+        calcMin = 140; calcMax = 400;
+      } else if (name.includes('physician') || name.includes('hospitalist') || name.includes('psychiatrist') || name.includes('doctor')) {
+        calcMin = 120; calcMax = 250;
+      } else if (name.includes('investment banking') || name.includes('m&a') || name.includes('equity research')) {
+        calcMin = 150; calcMax = 300;
+      } else if (name.includes('member of technical staff') || name.includes('robotics research') || name.includes('coding research') || name.includes('vp of robotics')) {
+        calcMin = 100; calcMax = 250;
+      } else if (name.includes('strategic project lead') || name.includes('product owner') || name.includes('enterprise client partner') || name.includes('data partnerships')) {
+        calcMin = 80; calcMax = 180;
+      } else if (name.includes('engineer') || name.includes('developer') || name.includes('architect')) {
+        calcMin = 60; calcMax = 150;
+      } else if (name.includes('data scientist') || name.includes('machine learning') || name.includes('nlp')) {
+        calcMin = 60; calcMax = 150;
+      } else if (name.includes('recruiter') || name.includes('talent acquisition') || name.includes('talent partner')) {
+        calcMin = 40; calcMax = 80;
+      } else if (reward >= 2000) {
+        calcMin = 100; calcMax = 250;
+      } else if (reward >= 1500) {
+        calcMin = 80; calcMax = 180;
+      } else if (reward >= 1000) {
+        calcMin = 50; calcMax = 120;
+      } else if (reward >= 500) {
+        calcMin = 35; calcMax = 75;
+      } else if (reward >= 300) {
+        calcMin = 25; calcMax = 50;
+      } else {
+        calcMin = 20; calcMax = 40;
       }
-      if (name.includes('physician') || name.includes('hospitalist') || name.includes('consultant') || reward >= 2000) {
-        return "$100 – $280/hr USD (depending on experience)";
-      }
-      if (name.includes('engineer') || name.includes('developer') || name.includes('architect') || reward >= 1000) {
-        return "$60 – $150/hr USD (depending on experience)";
-      }
-      if (reward >= 500) {
-        return "$40 – $90/hr USD (depending on experience)";
-      }
-      if (reward >= 300) {
-        return "$30 – $60/hr USD (depending on experience)";
-      }
-      return "$25 – $45/hr USD (depending on experience)";
+
+      const inrMin = Math.round(calcMin * 84).toLocaleString('en-IN');
+      const inrMax = Math.round(calcMax * 84).toLocaleString('en-IN');
+      return `$${calcMin} – $${calcMax}/hr USD (~₹${inrMin} – ₹${inrMax}/hr INR) (depending on experience)`;
     }
 
     // Modal: micro1 Intro Composer
@@ -732,7 +764,7 @@
         const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
         const payDisplay = getRolePayDisplay(topRole);
 
-        return `Hi ${firstName},\n\nWe run an AI talent network connecting top specialists with tier-1 global AI research projects.\n\nWe're currently onboarding for:\n${roleName}\n\n• Setup: 100% Remote\n• Commitment: Flexible hours (Part-time or Full-time, can be done alongside your current role)\n• Pay: ${payDisplay}\n\nIf you're interested in exploring this, you can view the scope and apply directly here:\n${url}\n\nApplications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
+        return `Hi ${firstName},\n\nHope you're doing well!\n\nWe're connecting talented professionals with **leading global AI research projects** and are currently onboarding for the role of **${roleName}**.\n\n🔹 **Remote:** 100% work from anywhere\n🔹 **Flexible:** Part-time or full-time, alongside your current role\n🔹 **Compensation:** ${payDisplay}\n🔹 **Projects:** Cutting-edge AI research and specialized technical projects\n\n**Your professional background and expertise appear to align well with this opportunity**, and we believe it could be a great fit for your experience and interests.\n\n**Apply here:** ${url}\n\nWe'd be delighted to have you explore this opportunity and potentially collaborate on exciting AI research projects.\n\nLooking forward to connecting!`;
       }
 
       document.getElementById('intro-message-text').value = composeMessage(linkToUse);
@@ -820,18 +852,12 @@
         if (data.shortUrl) linkToUse = data.shortUrl;
       } catch (e) {}
 
-      function formatFirstName(raw) {
-        if (!raw) return 'there';
-        const first = raw.trim().split(/\s+/)[0].replace(/[^a-zA-Z\u00C0-\u024F]/g, '');
-        if (!first) return 'there';
-        return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
-      }
 
       const firstName = formatFirstName(conn.first_name || conn.full_name);
       const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
       const payDisplay = getRolePayDisplay(topRole);
 
-      const msg = `Hi ${firstName},\n\nWe run an AI talent network connecting top specialists with tier-1 global AI research projects.\n\nWe're currently onboarding for:\n${roleName}\n\n• Setup: 100% Remote\n• Commitment: Flexible hours (Part-time or Full-time, can be done alongside your current role)\n• Pay: ${payDisplay}\n\nIf you're interested in exploring this, you can view the scope and apply directly here:\n${linkToUse}\n\nApplications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
+      const msg = `Hi ${firstName},\n\nHope you're doing well!\n\nWe're connecting talented professionals with **leading global AI research projects** and are currently onboarding for the role of **${roleName}**.\n\n🔹 **Remote:** 100% work from anywhere\n🔹 **Flexible:** Part-time or full-time, alongside your current role\n🔹 **Compensation:** ${payDisplay}\n🔹 **Projects:** Cutting-edge AI research and specialized technical projects\n\n**Your professional background and expertise appear to align well with this opportunity**, and we believe it could be a great fit for your experience and interests.\n\n**Apply here:** ${linkToUse}\n\nWe'd be delighted to have you explore this opportunity and potentially collaborate on exciting AI research projects.\n\nLooking forward to connecting!`;
 
       // Copy exact message to clipboard
       await navigator.clipboard.writeText(msg);

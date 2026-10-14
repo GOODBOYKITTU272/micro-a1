@@ -26,3 +26,4 @@ build/
 .chrome-session/
 .vercel
 micro1_jobs_locations.csv
+supabase/

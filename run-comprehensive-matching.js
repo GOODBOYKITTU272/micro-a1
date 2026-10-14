@@ -231,21 +231,16 @@ function getJobAccurateRate(job) {
     const connectedOn = clean[6] || '';
 
     const text = `${position} ${company}`;
-    const matchedJobsList = [];
-    let maxReward = 0;
-
     const addedJobIds = new Set();
-
+    let allMatches = [];
     for (const r of rules) {
       if (r.pattern.test(text)) {
-        // Sort roles in this rule by reward descending
-        const sortedRoles = [...r.roles].sort((a, b) => b.referral_reward_amount - a.referral_reward_amount);
-        for (const job of sortedRoles) {
+        for (const job of r.roles) {
           if (addedJobIds.has(job.job_id)) continue;
           addedJobIds.add(job.job_id);
 
-          const rates = rateMap.get(job.job_id) || { min: 60, max: 150 };
-          matchedJobsList.push({
+          const rates = rateMap.get(job.job_id) || { min: 50, max: 120 };
+          allMatches.push({
             id: job.job_id,
             name: job.job_name,
             reward: job.referral_reward_amount,
@@ -253,18 +248,18 @@ function getJobAccurateRate(job) {
             url: job.referral_url,
             category: r.category,
             rate_min: rates.min,
-            rate_max: rates.max
+            rate_max: rates.max,
+            rate_inr_min: Math.round(rates.min * 84),
+            rate_inr_max: Math.round(rates.max * 84)
           });
-
-          if (job.referral_reward_amount > maxReward) {
-            maxReward = job.referral_reward_amount;
-          }
-
-          if (matchedJobsList.length >= 5) break; // Top 5 best matching roles
         }
       }
-      if (matchedJobsList.length >= 5) break;
     }
+
+    // Pick ONLY the single highest-payout job (highest reward, then highest hourly pay)
+    allMatches.sort((a, b) => (b.reward - a.reward) || (b.rate_max - a.rate_max) || (b.openings - a.openings));
+    const matchedJobsList = allMatches.length > 0 ? [allMatches[0]] : [];
+    const maxReward = matchedJobsList.length > 0 ? matchedJobsList[0].reward : 0;
 
     if (matchedJobsList.length > 0) matchedCount++;
 

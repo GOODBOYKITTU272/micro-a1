@@ -52,8 +52,13 @@ async function getShortUrl(rawUrl) {
 
 function formatFirstName(raw) {
   if (!raw) return 'there';
-  const first = raw.trim().split(/\s+/)[0].replace(/[^a-zA-Z\u00C0-\u024F]/g, '');
-  if (!first) return 'there';
+  const tokens = raw.trim().split(/\s+/).map(t => t.replace(/[^a-zA-Z\u00C0-\u024F]/g, '')).filter(Boolean);
+  if (!tokens.length) return 'there';
+  const titles = new Set(['dr', 'mr', 'mrs', 'ms', 'prof', 'doctor', 'sir', 'madam']);
+  let first = tokens[0];
+  if (titles.has(first.toLowerCase()) && tokens.length > 1) {
+    first = tokens[1];
+  }
   return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
 }
 
@@ -64,36 +69,64 @@ try {
   });
 } catch (e) {}
 
+function getJobAccurateRate(job) {
+  const name = (job.job_name || job.name || '').toLowerCase();
+  const reward = Number(job.referral_reward_amount || job.reward || 0);
+
+  if (name.includes('research scientist') || name.includes('computational physics')) return { min: 100, max: 400 };
+  if (name.includes('law') || name.includes('attorney') || name.includes('counsel') || name.includes('litigat')) return { min: 140, max: 400 };
+  if (name.includes('physician') || name.includes('hospitalist') || name.includes('psychiatrist') || name.includes('doctor')) return { min: 120, max: 250 };
+  if (name.includes('investment banking') || name.includes('m&a') || name.includes('equity research')) return { min: 150, max: 300 };
+  if (name.includes('member of technical staff') || name.includes('robotics research') || name.includes('coding research') || name.includes('vp of robotics')) return { min: 100, max: 250 };
+  if (name.includes('strategic project lead') || name.includes('product owner') || name.includes('enterprise client partner') || name.includes('data partnerships')) return { min: 80, max: 180 };
+  if (name.includes('engineer') || name.includes('developer') || name.includes('architect')) return { min: 60, max: 150 };
+  if (name.includes('data scientist') || name.includes('machine learning') || name.includes('nlp')) return { min: 60, max: 150 };
+  if (name.includes('recruiter') || name.includes('talent acquisition') || name.includes('talent partner')) return { min: 40, max: 80 };
+  if (reward >= 2000) return { min: 100, max: 250 };
+  if (reward >= 1500) return { min: 80, max: 180 };
+  if (reward >= 1000) return { min: 50, max: 120 };
+  if (reward >= 500) return { min: 35, max: 75 };
+  if (reward >= 300) return { min: 25, max: 50 };
+  return { min: 20, max: 40 };
+}
+
 // Generate the high-converting AI talent network message
 function composeMessage(candidate, job, shortUrl) {
   const firstName = formatFirstName(candidate.first_name || candidate.full_name);
   const roleName = (job.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
   const rates = jobRates.get(job.id);
 
-  let payDisplay = "Competitive rate paid in USD";
-  if (rates && rates.max > 0) {
-    if (rates.min > 0) {
-      payDisplay = `$${rates.min} – $${rates.max}/hr USD (depending on experience)`;
-    } else {
-      payDisplay = `Up to $${rates.max}/hr USD (depending on experience)`;
-    }
+  let min = rates?.min;
+  let max = rates?.max;
+
+  if (!max || max < 20 || !min || min < 15 || min > max) {
+    const acc = getJobAccurateRate(job);
+    min = acc.min;
+    max = acc.max;
   }
+
+  const inrMin = Math.round(min * 84).toLocaleString('en-IN');
+  const inrMax = Math.round(max * 84).toLocaleString('en-IN');
+  const payDisplay = `$${min} – $${max}/hr USD (~₹${inrMin} – ₹${inrMax}/hr INR) (depending on experience)`;
 
   return `Hi ${firstName},
 
-We run an AI talent network connecting top specialists with tier-1 global AI research projects.
+Hope you're doing well!
 
-We're currently onboarding for:
-${roleName}
+We're connecting talented professionals with **leading global AI research projects** and are currently onboarding for the role of **${roleName}**.
 
-• Setup: 100% Remote
-• Commitment: Flexible hours (Part-time or Full-time, can be done alongside your current role)
-• Pay: ${payDisplay}
+🔹 **Remote:** 100% work from anywhere  
+🔹 **Flexible:** Part-time or full-time, alongside your current role  
+🔹 **Compensation:** ${payDisplay}  
+🔹 **Projects:** Cutting-edge AI research and specialized technical projects
 
-If you're interested in exploring this, you can view the scope and apply directly here:
-${shortUrl}
+**Your professional background and expertise appear to align well with this opportunity**, and we believe it could be a great fit for your experience and interests.
 
-Applications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
+**Apply here:** ${shortUrl}
+
+We'd be delighted to have you explore this opportunity and potentially collaborate on exciting AI research projects.
+
+Looking forward to connecting!`;
 }
 
 // Smooth mouse movement with multi-step interpolation
