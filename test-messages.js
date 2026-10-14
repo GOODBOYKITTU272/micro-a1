@@ -50,15 +50,11 @@ function getRolePayDisplay(role) {
   max = Number(max);
 
   if (max && max >= 20 && min && min >= 15 && min <= max) {
-    const inrMin = Math.round(min * 84).toLocaleString('en-IN');
-    const inrMax = Math.round(max * 84).toLocaleString('en-IN');
-    return `$${min} – $${max}/hr USD (~₹${inrMin} – ₹${inrMax}/hr INR) (depending on experience)`;
+    return `$${min} – $${max}/hr USD (depending on experience)`;
   }
 
   const acc = getJobAccurateRate(role);
-  const inrMin = Math.round(acc.min * 84).toLocaleString('en-IN');
-  const inrMax = Math.round(acc.max * 84).toLocaleString('en-IN');
-  return `$${acc.min} – $${acc.max}/hr USD (~₹${inrMin} – ₹${inrMax}/hr INR) (depending on experience)`;
+  return `$${acc.min} – $${acc.max}/hr USD (depending on experience)`;
 }
 
 function generateMessage(conn) {
@@ -106,8 +102,9 @@ async function runTests() {
   }
   console.log('✓ PASS: Every candidate has strictly ONE single highest-value job assigned.\n');
 
-  // 2. Sample 5 diverse persona cases
+  // 2. Sample diverse persona cases including BigLaw Attorney
   const sampleQueries = [
+    { label: 'BigLaw Attorney / Legal Counsel', condition: "position LIKE '%Lawyer%' OR position LIKE '%Attorney%' OR position LIKE '%Counsel%' OR position LIKE '%Legal%'" },
     { label: 'Physician / Medical AI Trainer', condition: "position LIKE '%Physician%' OR position LIKE '%Doctor%' OR position LIKE '%Medical%'" },
     { label: 'AI Researcher / Scientist', condition: "position LIKE '%Research%' OR position LIKE '%Scientist%' OR position LIKE '%AI%'" },
     { label: 'Enterprise / Partnerships Leader', condition: "position LIKE '%Partner%' OR position LIKE '%Sales%' OR position LIKE '%GTM%'" },
@@ -133,8 +130,8 @@ async function runTests() {
     // Assertions
     const hasCompetitivePlaceholder = msg.includes("Competitive rate paid in USD");
     const hasAsterisks = msg.includes("**");
-    const hasUsd = msg.includes("USD");
-    const hasInr = msg.includes("INR") && msg.includes("₹");
+    const hasUsd = msg.includes("USD") && msg.includes("$");
+    const hasInr = msg.includes("INR") || msg.includes("₹");
     const hasBlueBullets = msg.includes("🔹 Remote:") && msg.includes("🔹 Compensation:");
     const singleJobCheck = jobs.length === 1;
 
@@ -142,7 +139,7 @@ async function runTests() {
     console.log(`Test Persona: ${q.label}`);
     console.log(`Candidate: ${conn.full_name} (${conn.position} at ${conn.company || 'N/A'})`);
     console.log(`Assigned Job (Strictly 1): ${topRole.name} (Reward: +$${topRole.reward})`);
-    console.log(`Verification: Single Job = ${singleJobCheck ? '✓' : '✗'}, Dual Currency Pay = ${hasUsd && hasInr ? '✓' : '✗'}, No Asterisks = ${!hasAsterisks ? '✓' : '✗'}`);
+    console.log(`Verification: Single Job = ${singleJobCheck ? '✓' : '✗'}, USD Only (No INR) = ${hasUsd && !hasInr ? '✓' : '✗'}, No Asterisks = ${!hasAsterisks ? '✓' : '✗'}`);
     console.log(`\nGenerated Outreach Message:\n`);
     console.log(msg);
     console.log(`\n`);
@@ -150,11 +147,14 @@ async function runTests() {
     if (hasAsterisks) {
       throw new Error(`Failed: Raw markdown asterisks "**" found in message for ${conn.full_name}!`);
     }
+    if (hasInr) {
+      throw new Error(`Failed: INR currency found in message for ${conn.full_name}! Should be USD only.`);
+    }
     if (hasCompetitivePlaceholder) {
       throw new Error(`Failed: Placeholder "Competitive rate paid in USD" found in message for ${conn.full_name}`);
     }
-    if (!hasUsd || !hasInr) {
-      throw new Error(`Failed: USD or INR missing in compensation for ${conn.full_name}`);
+    if (!hasUsd) {
+      throw new Error(`Failed: USD rate missing in compensation for ${conn.full_name}`);
     }
     if (!singleJobCheck) {
       throw new Error(`Failed: Candidate ${conn.full_name} has ${jobs.length} jobs instead of 1`);

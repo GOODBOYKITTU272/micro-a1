@@ -105,9 +105,7 @@ function composeMessage(candidate, job, shortUrl) {
     max = acc.max;
   }
 
-  const inrMin = Math.round(min * 84).toLocaleString('en-IN');
-  const inrMax = Math.round(max * 84).toLocaleString('en-IN');
-  const payDisplay = `$${min} – $${max}/hr USD (~₹${inrMin} – ₹${inrMax}/hr INR) (depending on experience)`;
+  const payDisplay = `$${min} – $${max}/hr USD (depending on experience)`;
 
   return `Hi ${firstName},
 

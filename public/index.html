@@ -656,7 +656,7 @@
     }
 
     function getRolePayDisplay(role) {
-      if (!role) return "$100 – $400/hr USD (~₹8,400 – ₹33,600/hr INR) (depending on experience)";
+      if (!role) return "$100 – $400/hr USD (depending on experience)";
       
       let min = role.rate_min;
       let max = role.rate_max;
@@ -675,17 +675,14 @@
 
       // If valid rate numbers already exist and are not typos
       if (max && max >= 20 && min && min >= 15 && min <= max) {
-        const inrMin = Math.round(min * 84).toLocaleString('en-IN');
-        const inrMax = Math.round(max * 84).toLocaleString('en-IN');
-        return `$${min} – $${max}/hr USD (~₹${inrMin} – ₹${inrMax}/hr INR) (depending on experience)`;
+        return `$${min} – $${max}/hr USD (depending on experience)`;
       }
 
       if (max && max >= 20) {
-        const inrMax = Math.round(max * 84).toLocaleString('en-IN');
         if (min && min >= 15 && min === max) {
-          return `$${max}/hr USD (~₹${inrMax}/hr INR) (depending on experience)`;
+          return `$${max}/hr USD (depending on experience)`;
         }
-        return `Up to $${max}/hr USD (~₹${inrMax}/hr INR) (depending on experience)`;
+        return `Up to $${max}/hr USD (depending on experience)`;
       }
 
       // If rate is missing or had typos in API (like $2/hr), compute accurate rate based on role name and reward
@@ -727,9 +724,7 @@
         calcMin = 20; calcMax = 40;
       }
 
-      const inrMin = Math.round(calcMin * 84).toLocaleString('en-IN');
-      const inrMax = Math.round(calcMax * 84).toLocaleString('en-IN');
-      return `$${calcMin} – $${calcMax}/hr USD (~₹${inrMin} – ₹${inrMax}/hr INR) (depending on experience)`;
+      return `$${calcMin} – $${calcMax}/hr USD (depending on experience)`;
     }
 
     // Modal: micro1 Intro Composer
