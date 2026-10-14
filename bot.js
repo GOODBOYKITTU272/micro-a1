@@ -50,15 +50,22 @@ async function getShortUrl(rawUrl) {
   return cleanUrl;
 }
 
+function formatFirstName(raw) {
+  if (!raw) return 'there';
+  const first = raw.trim().split(/\s+/)[0].replace(/[^a-zA-Z\u00C0-\u024F]/g, '');
+  if (!first) return 'there';
+  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+}
+
 // Generate the concise 4-sentence Mercor-style message
 function composeMessage(candidate, job, shortUrl) {
-  const firstName = candidate.first_name || candidate.full_name?.split(' ')[0] || 'there';
+  const firstName = formatFirstName(candidate.first_name || candidate.full_name);
+  const roleName = (job.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
   return `Hi ${firstName},
 
-I'm collaborating with micro1, an AI company connecting top talent with global AI projects.
+I'm collaborating with micro1, a leading AI company that connects top talent with global AI projects.
 
-They're currently onboarding for:
-${job.name}
+They're currently onboarding for the following roles: ${roleName}.
 
 If you're interested, you can apply directly through this referral link:
 ${shortUrl}

@@ -684,8 +684,17 @@
       // Initial clean URL (strip bulky UTM parameters)
       let linkToUse = topRole.url.replace(/&utm_[^&]+/g, '').replace(/\?utm_[^&]+&/, '?');
 
+      function formatFirstName(raw) {
+        if (!raw) return 'there';
+        const first = raw.trim().split(/\s+/)[0].replace(/[^a-zA-Z\u00C0-\u024F]/g, '');
+        if (!first) return 'there';
+        return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+      }
+
       function composeMessage(url) {
-        return `Hi ${conn.first_name || 'there'},\n\nI'm collaborating with micro1, an AI company connecting top talent with global AI projects.\n\nThey're currently onboarding for:\n${topRole.name}\n\nIf you're interested, you can apply directly through this referral link:\n${url}\n\nApplications are reviewed by the micro1 team, and they will reach out directly if there's a match.`;
+        const firstName = formatFirstName(conn.first_name || conn.full_name);
+        const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
+        return `Hi ${firstName},\n\nI'm collaborating with micro1, a leading AI company that connects top talent with global AI projects.\n\nThey're currently onboarding for the following roles: ${roleName}.\n\nIf you're interested, you can apply directly through this referral link:\n${url}\n\nApplications are reviewed by the micro1 team, and they will reach out directly if there's a match.`;
       }
 
       document.getElementById('intro-message-text').value = composeMessage(linkToUse);
