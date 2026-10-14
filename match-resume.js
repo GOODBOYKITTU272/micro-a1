@@ -3,13 +3,18 @@
 import { DatabaseSync } from 'node:sqlite';
 import { getJobAccurateRate, requiresSpecificLanguage } from './matching-engine-v2.js';
 
-const db = new DatabaseSync('referrals.db');
-const allJobs = db.prepare('SELECT * FROM jobs').all();
-
+let allJobs = [];
 const rateMap = new Map();
-allJobs.forEach(j => {
-  rateMap.set(j.job_id, getJobAccurateRate(j));
-});
+
+try {
+  const db = new DatabaseSync('referrals.db');
+  allJobs = db.prepare('SELECT * FROM jobs').all();
+  allJobs.forEach(j => {
+    rateMap.set(j.job_id, getJobAccurateRate(j));
+  });
+} catch (e) {
+  // Will be provided dynamically in serverless environments
+}
 
 export function parseResume(resumeText) {
   const text = (resumeText || '').toLowerCase();
@@ -74,15 +79,22 @@ export function parseResume(resumeText) {
   };
 }
 
-export function matchResumeToJobs(resumeText, topN = 5) {
+export function matchResumeToJobs(resumeText, topN = 5, jobsList = null) {
   const parsed = parseResume(resumeText);
   const textLower = (resumeText || '').toLowerCase();
 
+  const jobsToUse = (jobsList && Array.isArray(jobsList) && jobsList.length > 0) ? jobsList : allJobs;
   const scoredJobs = [];
 
-  for (const job of allJobs) {
+  for (const job of jobsToUse) {
     const jobName = (job.job_name || '').toLowerCase();
-    const jobSkills = (job.skills ? JSON.parse(job.skills) : []).map(s => s.toLowerCase());
+    let jobSkills = [];
+    try {
+      jobSkills = Array.isArray(job.skills) ? job.skills : (job.skills ? JSON.parse(job.skills) : []);
+    } catch (e) {
+      jobSkills = [];
+    }
+    jobSkills = jobSkills.map(s => String(s).toLowerCase());
     const reward = Number(job.referral_reward_amount || 0);
     const openings = Number(job.no_of_openings || 0);
     const rates = rateMap.get(job.job_id) || getJobAccurateRate(job);
@@ -161,6 +173,8 @@ export function matchResumeToJobs(resumeText, topN = 5) {
     );
 
     if (compositeScore >= 45) {
+      const matchingSkills = jobSkills.filter(s => textLower.includes(s));
+      const missingSkills = jobSkills.filter(s => !textLower.includes(s));
       scoredJobs.push({
         id: job.job_id,
         name: job.job_name,
@@ -173,6 +187,10 @@ export function matchResumeToJobs(resumeText, topN = 5) {
         match_score: compositeScore,
         title_score: titleScore,
         skill_score: skillScore,
+        location: job.location || 'Remote (Global)',
+        skills: jobSkills,
+        matching_skills: matchingSkills,
+        missing_skills: missingSkills,
         rationale: `Role Fit: ${titleScore}% · Skills Overlap: ${skillScore}% · Seniority: ${seniorityScore}%`
       });
     }

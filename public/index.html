@@ -190,6 +190,13 @@
           <span>My Referrals CRM</span>
           <span class="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300" id="crm-tab-count">0</span>
         </button>
+
+        <!-- Tab: Drop Resume & Match -->
+        <button id="tab-resume" onclick="switchTab('resume')" class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i>
+          <span>Drop Resume & Match</span>
+          <span class="px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30 font-semibold">AI Matcher</span>
+        </button>
       </div>
 
       <div class="text-xs text-slate-400 hidden md:flex items-center gap-3">
@@ -353,6 +360,73 @@
             <!-- Injected via JS -->
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: DROP RESUME & MATCH STUDIO          -->
+    <!-- ========================================== -->
+    <div id="view-resume" class="hidden space-y-6">
+      <div class="bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-900 border border-purple-500/30 rounded-2xl p-6 shadow-xl backdrop-blur">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              AI Resume Matcher Studio
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">281 micro1 Jobs Active</span>
+            </h2>
+            <p class="text-xs text-slate-400">Drop or paste any candidate resume to instantly discover their top-paying micro1 matching roles</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Textarea & Upload Options -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-xs font-semibold text-slate-300">Candidate Resume or Profile Text:</label>
+              <div class="flex items-center gap-3">
+                <input type="file" id="resume-file-input" class="hidden" accept=".txt,.md,.json,.pdf,.doc,.docx" onchange="handleResumeFileUpload(event)" />
+                <button type="button" onclick="document.getElementById('resume-file-input').click()" class="text-xs text-indigo-400 hover:text-indigo-300 underline font-medium flex items-center gap-1">
+                  <i data-lucide="upload" class="w-3 h-3"></i> Upload File
+                </button>
+                <button type="button" onclick="loadSampleResumeText()" class="text-xs text-purple-400 hover:text-purple-300 underline font-medium">
+                  Load Sample Resume
+                </button>
+              </div>
+            </div>
+            <textarea
+              id="resume-input-text"
+              rows="6"
+              ondragover="event.preventDefault(); this.classList.add('border-purple-400');"
+              ondragleave="this.classList.remove('border-purple-400');"
+              ondrop="handleResumeDrop(event)"
+              placeholder="Paste candidate resume, bio, LinkedIn experience, or drag & drop resume file here..."
+              class="w-full p-4 bg-slate-950/80 border border-slate-700/80 rounded-xl text-slate-200 text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-purple-500 font-sans custom-scrollbar transition-all"
+            ></textarea>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+            <div class="text-[11px] text-slate-400 flex items-center gap-2">
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+              <span>Evaluated against 281 active roles with domain barrier isolation</span>
+            </div>
+            <button
+              id="btn-analyze-resume"
+              onclick="analyzeAndMatchResume()"
+              class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 transition-all active:scale-95"
+            >
+              <i data-lucide="zap" class="w-4 h-4"></i>
+              <span>⚡ Analyze & Match with AI</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Match Results Container (Hidden initially) -->
+      <div id="resume-results-container" class="hidden space-y-6">
+        <!-- Injected via JavaScript -->
       </div>
     </div>
   </main>
@@ -1315,10 +1389,12 @@
       const viewConnections = document.getElementById('view-connections');
       const viewJobs = document.getElementById('view-jobs');
       const viewCrm = document.getElementById('view-crm');
+      const viewResume = document.getElementById('view-resume');
       
       const tabConnections = document.getElementById('tab-connections');
       const tabJobs = document.getElementById('tab-jobs');
       const tabCrm = document.getElementById('tab-crm');
+      const tabResume = document.getElementById('tab-resume');
 
       const activeClass = 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/30 flex items-center gap-2';
       const inactiveClass = 'px-4 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2';
@@ -1326,10 +1402,12 @@
       viewConnections.classList.add('hidden');
       viewJobs.classList.add('hidden');
       viewCrm.classList.add('hidden');
+      if (viewResume) viewResume.classList.add('hidden');
 
       tabConnections.className = inactiveClass;
       tabJobs.className = inactiveClass;
       tabCrm.className = inactiveClass;
+      if (tabResume) tabResume.className = inactiveClass;
 
       if (tab === 'connections') {
         viewConnections.classList.remove('hidden');
@@ -1343,6 +1421,9 @@
         viewCrm.classList.remove('hidden');
         tabCrm.className = activeClass;
         loadReferrals();
+      } else if (tab === 'resume') {
+        if (viewResume) viewResume.classList.remove('hidden');
+        if (tabResume) tabResume.className = activeClass;
       }
     }
 
@@ -1421,6 +1502,324 @@
       } catch (err) {
         console.error('Error loading referrals:', err);
       }
+    }
+
+    // ==========================================
+    // RESUME MATCHING ENGINE FUNCTIONS
+    // ==========================================
+
+    function handleResumeFileUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const input = document.getElementById('resume-input-text');
+        if (input) {
+          input.value = e.target.result;
+          showToast(`Loaded ${file.name} successfully! Click "Analyze & Match".`);
+        }
+      };
+      reader.onerror = function() {
+        showToast('Failed to read file. Please paste the resume text directly.');
+      };
+      reader.readAsText(file);
+    }
+
+    function handleResumeDrop(event) {
+      event.preventDefault();
+      event.currentTarget.classList.remove('border-purple-400');
+      const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const input = document.getElementById('resume-input-text');
+          if (input) {
+            input.value = e.target.result;
+            showToast(`Loaded ${file.name}! Click "Analyze & Match".`);
+          }
+        };
+        reader.readAsText(file);
+      }
+    }
+
+    function loadSampleResumeText() {
+      const sample = `Jane Doe
+Senior Systems & Software Engineer | Open Source Maintainer
+San Francisco, CA • github.com/janedoe • linkedin.com/in/janedoe
+
+SUMMARY
+Principal Systems & Distributed Software Engineer with 8+ years of engineering experience maintaining large-scale distributed systems and developer tools in C++, Rust, Python, Go, and TypeScript. Core contributor and repository maintainer with extensive track record triaging issues, reviewing pull requests, establishing automated CI/CD evaluation harnesses, and benchmarking LLM-generated code patches.
+
+TECHNICAL SKILLS
+Languages: C++, Rust, Python, Golang (Go), TypeScript, C, Java
+Tools & Frameworks: GitHub, Git, Docker, Kubernetes, Linux, gRPC, CI/CD, LLM Evaluation Harnesses
+Specialties: Open Source Maintenance, Code Reviews, Automated Test Suites, System Architecture
+
+EXPERIENCE
+Principal Open Source Maintainer | Cloud Systems Foundation (2021 – Present)
+- Core maintainer of high-performance RPC and developer tooling repositories with 10k+ stars.
+- Reviewed and merged 300+ contributor pull requests and code patches across C++, Rust, and Python.
+- Designed automated testing pipelines and evaluation suites for regression testing and patch validation.
+- Evaluated AI-generated code patches for correctness, safety, test coverage, and architectural conformance.`;
+
+      const input = document.getElementById('resume-input-text');
+      if (input) {
+        input.value = sample;
+        showToast('Sample Open Source Maintainer resume loaded! Click "Analyze & Match" to evaluate.');
+      }
+    }
+
+    async function analyzeAndMatchResume() {
+      const input = document.getElementById('resume-input-text');
+      const text = (input ? input.value : '').trim();
+      if (!text) {
+        showToast('Please paste or enter candidate resume text first!');
+        return;
+      }
+
+      const btn = document.getElementById('btn-analyze-resume');
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Analyzing against 281 roles...</span>`;
+      lucide.createIcons();
+
+      try {
+        const res = await fetch('/api/match-resume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `Server responded with ${res.status}`);
+        }
+
+        const data = await res.json();
+        renderResumeMatchResults(data);
+        showToast(`Matched ${data.totalMatchingJobs} relevant roles across active jobs!`);
+
+        const resultsEl = document.getElementById('resume-results-container');
+        if (resultsEl) {
+          resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch (err) {
+        console.error('Resume match error:', err);
+        showToast('Failed to analyze resume: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+        lucide.createIcons();
+      }
+    }
+
+    function renderResumeMatchResults(data) {
+      const container = document.getElementById('resume-results-container');
+      if (!container) return;
+
+      const profile = data.parsedProfile || {};
+      const roles = profile.detectedRoles || [];
+      const skills = profile.detectedSkills || [];
+      const seniority = profile.seniority || 'Mid-Senior Level';
+      const topMatches = data.topMatches || [];
+      const totalCount = data.totalMatchingJobs || topMatches.length;
+
+      container.classList.remove('hidden');
+
+      container.innerHTML = `
+        <!-- Candidate Profile Analysis Card -->
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700/60 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-md">
+                AI
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  Candidate Profile Snapshot
+                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    ${escapeHtml(seniority)}
+                  </span>
+                </h3>
+                <p class="text-xs text-slate-400">Extracted from resume text & evaluated against active micro1 listings</p>
+              </div>
+            </div>
+
+            <div class="text-right">
+              <div class="text-xs font-semibold text-emerald-400 flex items-center gap-1.5 sm:justify-end">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>${totalCount} Matching Roles Found</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-0.5">Top ${topMatches.length} highest-scoring shown below</p>
+            </div>
+          </div>
+
+          <!-- Detected Attributes Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <!-- Detected Roles -->
+            <div class="bg-slate-900/80 border border-slate-700/60 rounded-xl p-3.5 space-y-2">
+              <span class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Identified Specializations & Roles</span>
+              <div class="flex flex-wrap gap-1.5 pt-1">
+                ${roles.length > 0 ? roles.map(r => `
+                  <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-[11px] font-medium capitalize">
+                    ${escapeHtml(r)}
+                  </span>
+                `).join('') : '<span class="text-slate-500 text-xs italic">General Technical Professional</span>'}
+              </div>
+            </div>
+
+            <!-- Detected Skills -->
+            <div class="bg-slate-900/80 border border-slate-700/60 rounded-xl p-3.5 space-y-2">
+              <span class="text-[10px] uppercase font-bold text-purple-400 tracking-wider">Key Skills & Technologies Detected</span>
+              <div class="flex flex-wrap gap-1.5 pt-1">
+                ${skills.length > 0 ? skills.map(s => `
+                  <span class="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/20 text-[11px] font-medium uppercase">
+                    ${escapeHtml(s)}
+                  </span>
+                `).join('') : '<span class="text-slate-500 text-xs italic">None explicitly identified</span>'}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Title: Top Matching Opportunities -->
+        <div class="flex items-center justify-between pt-2">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>Top Recommended micro1 Roles</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">Ranked by Fit Score</span>
+          </h3>
+          <span class="text-xs text-slate-400">Ready to refer with 1-click outreach message</span>
+        </div>
+
+        <!-- Matched Job Cards Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          ${topMatches.map((job, idx) => {
+            const fitScore = job.match_score || 85;
+            const scoreColor = fitScore >= 80 
+              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
+              : fitScore >= 60 
+                ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' 
+                : 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+            
+            const matchingSkills = job.matching_skills || [];
+            const missingSkills = (job.missing_skills || []).slice(0, 4);
+
+            return `
+              <div class="bg-slate-800/90 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-5 shadow-lg flex flex-col justify-between transition-all hover:shadow-purple-500/5 space-y-4">
+                <div>
+                  <!-- Header: Rank Badge & Fit Score -->
+                  <div class="flex items-center justify-between gap-2 mb-3">
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-900 text-slate-300 border border-slate-700">
+                        #${idx + 1} Match
+                      </span>
+                      <span class="px-2.5 py-0.5 rounded text-[11px] font-bold border ${scoreColor} flex items-center gap-1">
+                        <i data-lucide="zap" class="w-3 h-3"></i> ${fitScore}% Fit
+                      </span>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      +$${Number(job.reward || 1000).toLocaleString()} Bounty
+                    </span>
+                  </div>
+
+                  <!-- Job Name -->
+                  <h4 class="text-base font-bold text-white hover:text-indigo-300 transition-colors line-clamp-2">
+                    ${escapeHtml(job.name)}
+                  </h4>
+
+                  <!-- Openings & Pay -->
+                  <div class="flex flex-wrap items-center gap-2 text-xs text-slate-300 mt-2">
+                    <span class="font-semibold text-emerald-300">${escapeHtml(job.pay_display)}</span>
+                    <span>•</span>
+                    <span class="text-slate-400">${job.openings} Openings</span>
+                    <span>•</span>
+                    <span class="text-slate-400">📍 ${escapeHtml(job.location || 'Remote (Global)')}</span>
+                  </div>
+
+                  <!-- Why This Matches -->
+                  <div class="mt-3 bg-slate-900/80 border border-slate-700/60 rounded-xl p-3 text-xs text-slate-300 space-y-1">
+                    <span class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Fit Rationale</span>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">${escapeHtml(job.rationale || 'High alignment on key technical requirements and role responsibilities.')}</p>
+                  </div>
+
+                  <!-- Matching Skills Breakdown -->
+                  ${matchingSkills.length > 0 ? `
+                    <div class="mt-3">
+                      <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Matching Skills:</span>
+                      <div class="flex flex-wrap gap-1 mt-1">
+                        ${matchingSkills.map(s => `
+                          <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+                            ✓ ${escapeHtml(s)}
+                          </span>
+                        `).join('')}
+                      </div>
+                    </div>
+                  ` : ''}
+
+                  <!-- Missing Skills (if any) -->
+                  ${missingSkills.length > 0 ? `
+                    <div class="mt-2">
+                      <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">To Verify / Learn:</span>
+                      <div class="flex flex-wrap gap-1 mt-1">
+                        ${missingSkills.map(s => `
+                          <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-900 text-slate-400 border border-slate-700">
+                            • ${escapeHtml(s)}
+                          </span>
+                        `).join('')}
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="pt-4 border-t border-slate-700/60 flex items-center justify-between gap-2">
+                  <button
+                    onclick="copyResumeOutreachPitch('${escapeHtml(job.name)}', '${escapeHtml(job.pay_display)}', '${escapeHtml(job.url)}')"
+                    class="flex-1 py-2 px-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/30 transition-all active:scale-95"
+                  >
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    <span>Copy Outreach Pitch</span>
+                  </button>
+
+                  <button
+                    onclick="copyLink('${escapeHtml(job.url)}')"
+                    title="Copy Referral Link"
+                    class="p-2 bg-slate-700/80 hover:bg-slate-600 rounded-xl text-slate-200 transition-all active:scale-95"
+                  >
+                    <i data-lucide="link" class="w-4 h-4"></i>
+                  </button>
+
+                  <a
+                    href="${escapeHtml(job.url)}"
+                    target="_blank"
+                    title="Open Job Page"
+                    class="p-2 bg-slate-700/80 hover:bg-slate-600 rounded-xl text-slate-200 transition-all active:scale-95"
+                  >
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                  </a>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+
+      lucide.createIcons();
+    }
+
+    async function copyResumeOutreachPitch(jobName, payDisplay, rawUrl) {
+      let cleanUrl = (rawUrl || '').replace(/&utm_[^&]+/g, '').replace(/\?utm_[^&]+&/, '?');
+      try {
+        const res = await fetch(`/api/shorten?url=${encodeURIComponent(cleanUrl)}`);
+        const data = await res.json();
+        if (data.shortUrl) cleanUrl = data.shortUrl;
+      } catch (e) {}
+
+      const msg = `Hi! Hope you're having a great week.\n\nWe're connecting talented specialists with top AI research projects and are currently onboarding for:\n${jobName}\n\n🔹 Remote: 100% remote / work from anywhere\n🔹 Schedule: Flexible contractor hours (can be done alongside current role)\n🔹 Compensation: ${payDisplay}\n🔹 Impact: Direct evaluation of frontier models and real-world AI reasoning\n\nYour background looks like a great fit for this work. You can review the full project scope and apply directly here:\n${cleanUrl}\n\nLet me know once you submit so I can track your referral!`;
+
+      await navigator.clipboard.writeText(msg);
+      showToast('📋 Outreach message with referral link copied to clipboard!');
     }
 
     // Trigger sync

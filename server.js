@@ -380,7 +380,31 @@ export async function appHandler(req, res) {
       return sendJson(res, 200, { shortUrl: cleanUrl });
     }
 
-    // 12. Frontend UI
+    // 12. Resume AI Matcher Endpoint
+    if (method === 'POST' && pathname === '/api/match-resume') {
+      const body = await parseJsonBody(req);
+      const text = body.text || '';
+      if (!text.trim()) {
+        return sendJson(res, 400, { error: 'Resume text is required' });
+      }
+
+      // Fetch active jobs from Supabase or fallback to local
+      let jobs = [];
+      try {
+        const r = await supabaseFetch('jobs?select=job_id,job_name,referral_reward_amount,ideal_hourly_rate_min,ideal_hourly_rate_max,no_of_openings,skills,referral_url,location');
+        if (r.ok) {
+          jobs = await r.json();
+        }
+      } catch (e) {
+        jobs = [];
+      }
+
+      const { matchResumeToJobs } = await import('./match-resume.js');
+      const results = matchResumeToJobs(text, 10, jobs);
+      return sendJson(res, 200, results);
+    }
+
+    // 13. Frontend UI
     if ((method === 'GET' || method === 'HEAD') && (pathname === '/' || pathname === '/index.html')) {
       res.writeHead(200, {
         'Content-Type': 'text/html; charset=utf-8',
