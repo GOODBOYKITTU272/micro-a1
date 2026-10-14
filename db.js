@@ -442,3 +442,9 @@ export function updateConnection(id, { status, notes }) {
   stmt.run(status ?? null, notes ?? null, id);
   return { success: true };
 }
+
+export function deleteConnection(id) {
+  initDb();
+  db.prepare('DELETE FROM connections WHERE id = ?').run(id);
+  return { success: true };
+}

@@ -592,10 +592,16 @@
             </td>
 
             <!-- Know Them Well / Vouch -->
+            <!-- Know Them Well / Vouch & Delete -->
             <td class="py-4 px-5 text-right">
-              <button onclick="vouchCandidate(${c.id})" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-medium transition-all active:scale-95">
-                ${c.status === 'Vouched' ? '✓ Vouched' : 'Vouch'}
-              </button>
+              <div class="flex items-center justify-end gap-1.5">
+                <button onclick="vouchCandidate(${c.id})" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-medium transition-all active:scale-95">
+                  ${c.status === 'Vouched' ? '✓ Vouched' : 'Vouch'}
+                </button>
+                <button onclick="deleteConnectionItem(${c.id}, '${escapeHtml(c.full_name)}')" title="Delete from list" class="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
             </td>
           </tr>
         `;
@@ -675,16 +681,16 @@
         const firstName = formatFirstName(conn.first_name || conn.full_name);
         const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
 
-        let payLine = "It's 100% remote with competitive compensation paid in USD.";
+        let payDisplay = "Competitive rate paid in USD";
         if (topRole.rate_max && topRole.rate_max > 0) {
           if (topRole.rate_min && topRole.rate_min > 0) {
-            payLine = `The role is 100% remote with compensation paid in USD ($${topRole.rate_min} – $${topRole.rate_max}/hr depending on experience).`;
+            payDisplay = `$${topRole.rate_min} – $${topRole.rate_max}/hr USD (depending on experience)`;
           } else {
-            payLine = `The role is 100% remote with compensation paid in USD (up to $${topRole.rate_max}/hr depending on experience).`;
+            payDisplay = `Up to $${topRole.rate_max}/hr USD (depending on experience)`;
           }
         }
 
-        return `Hi ${firstName},\n\nWe run an AI talent network connecting top specialists with tier-1 global AI projects.\n\nWe're currently onboarding for: ${roleName}.\n\n${payLine}\n\nIf you're interested, you can review the details and apply directly here:\n${url}\n\nApplications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
+        return `Hi ${firstName},\n\nWe run an AI talent network connecting top specialists with tier-1 global AI research projects.\n\nWe're currently onboarding for:\n${roleName}\n\n• Setup: 100% Remote\n• Commitment: Flexible hours (Part-time or Full-time, can be done alongside your current role)\n• Pay: ${payDisplay}\n\nIf you're interested in exploring this, you can view the scope and apply directly here:\n${url}\n\nApplications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
       }
 
       document.getElementById('intro-message-text').value = composeMessage(linkToUse);
@@ -782,16 +788,16 @@
       const firstName = formatFirstName(conn.first_name || conn.full_name);
       const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
 
-      let payLine = "It's 100% remote with competitive compensation paid in USD.";
+      let payDisplay = "Competitive rate paid in USD";
       if (topRole.rate_max && topRole.rate_max > 0) {
         if (topRole.rate_min && topRole.rate_min > 0) {
-          payLine = `The role is 100% remote with compensation paid in USD ($${topRole.rate_min} – $${topRole.rate_max}/hr depending on experience).`;
+          payDisplay = `$${topRole.rate_min} – $${topRole.rate_max}/hr USD (depending on experience)`;
         } else {
-          payLine = `The role is 100% remote with compensation paid in USD (up to $${topRole.rate_max}/hr depending on experience).`;
+          payDisplay = `Up to $${topRole.rate_max}/hr USD (depending on experience)`;
         }
       }
 
-      const msg = `Hi ${firstName},\n\nWe run an AI talent network connecting top specialists with tier-1 global AI projects.\n\nWe're currently onboarding for: ${roleName}.\n\n${payLine}\n\nIf you're interested, you can review the details and apply directly here:\n${linkToUse}\n\nApplications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
+      const msg = `Hi ${firstName},\n\nWe run an AI talent network connecting top specialists with tier-1 global AI research projects.\n\nWe're currently onboarding for:\n${roleName}\n\n• Setup: 100% Remote\n• Commitment: Flexible hours (Part-time or Full-time, can be done alongside your current role)\n• Pay: ${payDisplay}\n\nIf you're interested in exploring this, you can view the scope and apply directly here:\n${linkToUse}\n\nApplications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
 
       // Copy exact message to clipboard
       await navigator.clipboard.writeText(msg);
@@ -830,6 +836,20 @@
       showToast('Candidate vouched!');
       loadConnections();
       loadStats();
+    }
+
+    async function deleteConnectionItem(connId, name) {
+      if (!confirm(`Remove ${name} from your referral list?`)) return;
+      try {
+        const res = await fetch(`/api/connections/${connId}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast(`Removed ${name} from list`);
+          loadConnections();
+          loadStats();
+        }
+      } catch (e) {
+        showToast('Error removing connection');
+      }
     }
 
     // ==========================================

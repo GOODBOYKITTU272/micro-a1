@@ -70,24 +70,27 @@ function composeMessage(candidate, job, shortUrl) {
   const roleName = (job.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
   const rates = jobRates.get(job.id);
 
-  let payLine = "It's 100% remote with competitive compensation paid in USD.";
+  let payDisplay = "Competitive rate paid in USD";
   if (rates && rates.max > 0) {
     if (rates.min > 0) {
-      payLine = `The role is 100% remote with compensation paid in USD ($${rates.min} – $${rates.max}/hr depending on experience).`;
+      payDisplay = `$${rates.min} – $${rates.max}/hr USD (depending on experience)`;
     } else {
-      payLine = `The role is 100% remote with compensation paid in USD (up to $${rates.max}/hr depending on experience).`;
+      payDisplay = `Up to $${rates.max}/hr USD (depending on experience)`;
     }
   }
 
   return `Hi ${firstName},
 
-We run an AI talent network connecting top specialists with tier-1 global AI projects.
+We run an AI talent network connecting top specialists with tier-1 global AI research projects.
 
-We're currently onboarding for: ${roleName}.
+We're currently onboarding for:
+${roleName}
 
-${payLine}
+• Setup: 100% Remote
+• Commitment: Flexible hours (Part-time or Full-time, can be done alongside your current role)
+• Pay: ${payDisplay}
 
-If you're interested, you can review the details and apply directly here:
+If you're interested in exploring this, you can view the scope and apply directly here:
 ${shortUrl}
 
 Applications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;

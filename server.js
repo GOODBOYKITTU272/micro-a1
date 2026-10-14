@@ -13,7 +13,8 @@ import {
   deleteCandidateReferral,
   getConnections,
   getConnectionStats,
-  updateConnection
+  updateConnection,
+  deleteConnection
 } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -143,6 +144,13 @@ const server = http.createServer(async (req, res) => {
       const id = pathname.split('/').pop();
       const body = await parseJsonBody(req);
       const result = updateConnection(id, body);
+      return sendJson(res, 200, result);
+    }
+
+    // API: Delete / Dismiss Connection
+    if (method === 'DELETE' && pathname.startsWith('/api/connections/')) {
+      const id = pathname.split('/').pop();
+      const result = deleteConnection(id);
       return sendJson(res, 200, result);
     }
 
