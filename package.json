@@ -1,28 +1,19 @@
 {
   "name": "micro1-referral-hub",
   "version": "1.0.0",
-  "description": "Local Referral Tracking Hub and Job Dashboard for micro1",
+  "description": "Referral Tracking Hub and Job Dashboard for micro1",
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node --env-file=.env server.js",
-    "dev": "node --watch --env-file=.env server.js",
-    "sync": "node --env-file=.env -e 'import { syncAllJobs } from \"./db.js\"; syncAllJobs();'",
-    "chrome": "bash launch-chrome.sh",
-    "bot": "node --env-file=.env bot.js --limit=20",
-    "bot:step": "node --env-file=.env bot.js --limit=20 --step",
-    "bot:auto": "node --env-file=.env bot.js --limit=20 --auto",
-    "bot:test": "node --env-file=.env bot.js --limit=1 --dry-run --step"
+    "start": "node server.js",
+    "dev": "node --watch server.js"
   },
   "keywords": [
     "micro1",
     "referral",
     "jobs",
-    "sqlite"
+    "supabase"
   ],
   "author": "Ramakrishna",
-  "license": "MIT",
-  "dependencies": {
-    "playwright": "^1.64.0"
-  }
+  "license": "MIT"
 }

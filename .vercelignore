@@ -1,0 +1,12 @@
+node_modules
+.chrome-session
+referrals.db
+Connections.csv
+micro1_jobs_locations.csv
+.git
+.env
+launch-chrome.sh
+migrate-to-supabase.js
+enrich-rates.js
+supabase_schema.sql
+supabase_rpcs.sql

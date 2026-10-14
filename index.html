@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>micro1 Referral Hub | Ramakrishna</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 bg-emerald-500 text-slate-950 font-semibold px-5 py-3 rounded-xl shadow-2xl">
+    <i data-lucide="check-circle" class="w-5 h-5"></i>
+    <span id="toast-message">Action successful!</span>
+  </div>
+
+  <!-- Top Navigation -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 font-bold text-lg text-white">
+          m1
+        </div>
+        <div>
+          <h1 class="text-base font-bold text-white leading-tight flex items-center gap-2">
+            micro1 Referral Hub
+            <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Mercor Match Engine</span>
+          </h1>
+          <p class="text-xs text-slate-400">Network of Ramakrishna Chanda</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Referral Code Badge -->
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-800/80 rounded-lg border border-slate-700/60 text-xs">
+          <span class="text-slate-400">Referral Code:</span>
+          <code class="font-mono text-indigo-300 font-semibold">b3967e16...6627</code>
+          <button onclick="copyCode()" title="Copy full code" class="text-slate-400 hover:text-white ml-1">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Safe Pacing Badge -->
+        <div id="pacing-box" class="flex items-center gap-2 px-3 py-1.5 bg-slate-800/90 rounded-lg border border-slate-700 text-xs text-slate-300">
+          <span class="w-2 h-2 rounded-full bg-emerald-400" id="pacing-dot"></span>
+          <span id="pacing-text" class="font-semibold text-emerald-400">Pacing: Ready</span>
+        </div>
+
+        <!-- Sync Button -->
+        <button id="sync-btn" onclick="triggerSync()" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-semibold rounded-lg shadow-lg shadow-indigo-600/20 transition-all">
+          <i id="sync-icon" data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span id="sync-text">Sync Jobs</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 backdrop-blur">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+          <span>MY NETWORK POTENTIAL</span>
+          <i data-lucide="sparkles" class="w-4 h-4 text-emerald-400"></i>
+        </div>
+        <div id="stat-conn-potential" class="text-2xl font-bold text-emerald-400">$1,560,800</div>
+        <div id="stat-conn-matched" class="text-xs text-slate-400 mt-1">1,731 qualified matches</div>
+      </div>
+
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 backdrop-blur">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+          <span>TOTAL CONNECTIONS</span>
+          <i data-lucide="users" class="w-4 h-4 text-purple-400"></i>
+        </div>
+        <div id="stat-conn-total" class="text-2xl font-bold text-white">11,649</div>
+        <div class="text-xs text-slate-400 mt-1">From Connections.csv</div>
+      </div>
+
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 backdrop-blur">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+          <span>ACTIVE REFERRAL ROLES</span>
+          <i data-lucide="briefcase" class="w-4 h-4 text-indigo-400"></i>
+        </div>
+        <div id="stat-total-jobs" class="text-2xl font-bold text-white">281</div>
+        <div id="stat-high-demand" class="text-xs text-slate-400 mt-1">18,661 openings globally</div>
+      </div>
+
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 backdrop-blur">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+          <span>CONFIRMED PIPELINE</span>
+          <i data-lucide="target" class="w-4 h-4 text-amber-400"></i>
+        </div>
+        <div class="text-2xl font-bold text-white flex items-center gap-2">
+          <span id="stat-ref-count">0</span>
+          <span id="stat-ref-earned" class="text-sm text-emerald-400 font-semibold">($0 earned)</span>
+        </div>
+        <div id="stat-ref-potential" class="text-xs text-slate-400 mt-1">$0 in active review</div>
+      </div>
+    </div>
+
+    <!-- Tab Buttons (Mercor Style) -->
+    <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+      <div class="flex items-center gap-3">
+        <!-- Tab: My Connections -->
+        <button id="tab-connections" onclick="switchTab('connections')" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/30 flex items-center gap-2">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span>My Connections</span>
+          <span class="px-2 py-0.5 rounded-full text-xs bg-indigo-950 text-indigo-200 border border-indigo-400/30" id="conn-tab-badge">1,731</span>
+        </button>
+
+        <!-- Tab: Browse Jobs -->
+        <button id="tab-jobs" onclick="switchTab('jobs')" class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+          <span>Browse Jobs</span>
+          <span class="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300" id="jobs-tab-count">281</span>
+        </button>
+
+        <!-- Tab: Referrals CRM -->
+        <button id="tab-crm" onclick="switchTab('crm')" class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2">
+          <i data-lucide="target" class="w-4 h-4"></i>
+          <span>My Referrals CRM</span>
+          <span class="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300" id="crm-tab-count">0</span>
+        </button>
+      </div>
+
+      <div class="text-xs text-slate-400 hidden md:flex items-center gap-3">
+        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> micro1 API Connected</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: MY CONNECTIONS (MERCOR INTERFACE)    -->
+    <!-- ========================================== -->
+    <div id="view-connections" class="space-y-6">
+      <!-- Mercor Announcement Banner -->
+      <div class="bg-gradient-to-r from-indigo-950/80 to-purple-950/60 border border-indigo-500/30 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl shadow-indigo-950/20">
+        <div>
+          <div class="flex items-center gap-2 font-bold text-white text-sm">
+            <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs">M</span>
+            <span>Unlock more earnings with micro1 Intros</span>
+          </div>
+          <p class="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
+            Track your 11,649 connections and their automatic job matches. You decide who to introduce and what gets sent. Click the 
+            <span class="px-1.5 py-0.5 rounded bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[11px] font-semibold">m1 Intro</span> 
+            button on any connection row to preview and copy a personalized outreach message with your referral link attached.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="filterConnsByTop()" id="conn-filter-top" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white flex items-center gap-1.5 shadow-md shadow-indigo-600/30">
+            <i data-lucide="zap" class="w-3.5 h-3.5"></i> Top Matches (1,731)
+          </button>
+          <button onclick="filterConnsAll()" id="conn-filter-all" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700">
+            All Connections
+          </button>
+        </div>
+      </div>
+
+
+
+      <!-- Filters & Search Toolbar -->
+      <div class="bg-slate-800/80 border border-slate-700/70 p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between">
+        <!-- Search -->
+        <div class="relative w-full md:w-96">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+          <input
+            id="conn-search-input"
+            type="text"
+            oninput="handleConnSearch()"
+            placeholder="Search connections by name, company, or title..."
+            class="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        <!-- Filter Chips -->
+        <div class="flex items-center gap-2 w-full md:w-auto flex-wrap justify-end">
+          <button onclick="setConnRewardFilter(0)" id="conn-rew-0" class="conn-rew-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white">All Matches</button>
+          <button onclick="setConnRewardFilter(3000)" id="conn-rew-3000" class="conn-rew-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-900 border border-slate-700 hover:bg-slate-700">★ $3,000 Potential</button>
+          <button onclick="setConnRewardFilter(2000)" id="conn-rew-2000" class="conn-rew-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-900 border border-slate-700 hover:bg-slate-700">★ $2,000+ Potential</button>
+          <button onclick="setConnRewardFilter(1000)" id="conn-rew-1000" class="conn-rew-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-900 border border-slate-700 hover:bg-slate-700">★ $1,000+ Potential</button>
+        </div>
+      </div>
+
+      <!-- Connections Table (Mercor Exact Structure) -->
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900/90 border-b border-slate-700 text-slate-400 font-semibold uppercase tracking-wider">
+              <tr>
+                <th class="py-3.5 px-5">Connection</th>
+                <th class="py-3.5 px-5">Matches</th>
+                <th class="py-3.5 px-5">Potential earnings ↓</th>
+                <th class="py-3.5 px-5">Reach out</th>
+                <th class="py-3.5 px-5 text-right">Know them well?</th>
+              </tr>
+            </thead>
+            <tbody id="connections-tbody" class="divide-y divide-slate-700/50 text-slate-300">
+              <!-- Injected via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="conn-empty" class="hidden text-center py-16">
+          <i data-lucide="user-x" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
+          <h3 class="text-base font-semibold text-slate-300">No matching connections found</h3>
+          <p class="text-xs text-slate-500 mt-1">Try clearing search or reward filters</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: BROWSE JOBS                         -->
+    <!-- ========================================== -->
+    <div id="view-jobs" class="hidden space-y-6">
+      <!-- Search & Filters Bar -->
+      <div class="bg-slate-800/80 border border-slate-700/70 p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between">
+        <div class="relative w-full md:w-96">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+          <input
+            id="search-input"
+            type="text"
+            oninput="handleSearch()"
+            placeholder="Search roles, skills (e.g. Python, AI, Lawyer)..."
+            class="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        <div class="flex items-center gap-2 w-full md:w-auto flex-wrap justify-end">
+          <button onclick="setFilter('all')" id="filter-all" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white">All</button>
+          <button onclick="setFilter('high-reward')" id="filter-high-reward" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-900 border border-slate-700 hover:bg-slate-700">★ $1,000+ Reward</button>
+          <button onclick="setFilter('high-demand')" id="filter-high-demand" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-900 border border-slate-700 hover:bg-slate-700">High Demand</button>
+          <button onclick="setFilter('global')" id="filter-global" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-900 border border-slate-700 hover:bg-slate-700">🌐 Global Remote</button>
+          <button onclick="setFilter('us')" id="filter-us" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-900 border border-slate-700 hover:bg-slate-700">🇺🇸 US Roles</button>
+
+          <select id="sort-select" onchange="handleSort()" class="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="reward_desc">Highest Reward First</option>
+            <option value="openings_desc">Most Openings First</option>
+            <option value="newest">Newest First</option>
+            <option value="reward_asc">Lowest Reward First</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Jobs Grid -->
+      <div id="jobs-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <div id="empty-state" class="hidden text-center py-16">
+        <i data-lucide="inbox" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
+        <h3 class="text-base font-semibold text-slate-300">No jobs match your filter</h3>
+        <p class="text-xs text-slate-500 mt-1">Try clearing your search query or reset filters</p>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: CANDIDATE REFERRAL CRM              -->
+    <!-- ========================================== -->
+    <div id="view-crm" class="hidden space-y-6">
+      <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700/70 p-4 rounded-2xl">
+        <div>
+          <h2 class="text-base font-bold text-white">Active Referral CRM</h2>
+          <p class="text-xs text-slate-400">Track candidates you reached out to, update statuses, and record reward payouts</p>
+        </div>
+        <button onclick="openTrackModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-600/20">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          Log Candidate Manually
+        </button>
+      </div>
+
+      <div id="referrals-table-container" class="bg-slate-800/60 border border-slate-700/60 rounded-2xl overflow-hidden shadow-xl">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-900/80 border-b border-slate-700/80 text-slate-400 font-semibold uppercase tracking-wider">
+            <tr>
+              <th class="py-3.5 px-5">Candidate</th>
+              <th class="py-3.5 px-5">Job Role</th>
+              <th class="py-3.5 px-5">Status</th>
+              <th class="py-3.5 px-5">Reward</th>
+              <th class="py-3.5 px-5">Date</th>
+              <th class="py-3.5 px-5 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="referrals-tbody" class="divide-y divide-slate-700/40 text-slate-300">
+            <!-- Injected via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: MERCOR INTRO OUTREACH COMPOSER      -->
+  <!-- ========================================== -->
+  <div id="intro-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden flex flex-col">
+      <div class="p-5 border-b border-slate-700 flex items-start justify-between bg-slate-900/60">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-bold text-white text-sm" id="intro-avatar">
+            RC
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              Send micro1 Intro to <span id="intro-candidate-name">Candidate</span>
+            </h3>
+            <p id="intro-candidate-meta" class="text-xs text-slate-400">Position @ Company</p>
+          </div>
+        </div>
+        <button onclick="closeIntroModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 text-xs">
+        <!-- Target Role Selected -->
+        <div class="bg-slate-900/90 border border-slate-700/80 p-3.5 rounded-xl flex items-center justify-between">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Matched Role</span>
+            <div id="intro-job-title" class="text-sm font-bold text-white mt-0.5">Software Engineer</div>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Your Referral Bounty</span>
+            <div id="intro-job-reward" class="text-sm font-bold text-emerald-400 mt-0.5">+$1,000</div>
+          </div>
+        </div>
+
+        <!-- Editable Outreach Message -->
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1.5 flex items-center justify-between">
+            <span>Pre-filled LinkedIn Outreach Pitch:</span>
+            <span class="text-[11px] text-slate-400">Your referral code is embedded</span>
+          </label>
+          <textarea
+            id="intro-message-text"
+            rows="6"
+            class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-slate-200 text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500 custom-scrollbar font-sans"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-700 bg-slate-900/80 flex items-center justify-between gap-3">
+        <a id="intro-linkedin-link" href="#" target="_blank" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-semibold rounded-xl flex items-center gap-2">
+          <i data-lucide="linkedin" class="w-4 h-4 text-sky-400"></i>
+          Open LinkedIn Profile
+        </a>
+
+        <div class="flex items-center gap-2">
+          <button onclick="copyIntroMessage()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+            <i data-lucide="copy" class="w-4 h-4"></i>
+            Copy Message & Track
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Job Detail Modal -->
+  <div id="job-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-slate-700 flex items-start justify-between">
+        <div>
+          <span id="modal-reward-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            +$1,000 Reward
+          </span>
+          <h3 id="modal-job-title" class="text-lg font-bold text-white mt-2 leading-snug">Job Title</h3>
+          <p id="modal-job-meta" class="text-xs text-slate-400 mt-1">100 Openings • Remote</p>
+        </div>
+        <button onclick="closeJobModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="modal-job-desc" class="p-6 overflow-y-auto custom-scrollbar text-sm text-slate-300 space-y-4">
+        <!-- Job HTML description -->
+      </div>
+
+      <div class="p-4 border-t border-slate-700 bg-slate-900/80 flex items-center justify-between gap-3">
+        <button id="modal-track-btn" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-xl flex items-center gap-2">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          Track Candidate
+        </button>
+        <div class="flex items-center gap-2">
+          <button id="modal-copy-btn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-semibold rounded-xl flex items-center gap-2">
+            <i data-lucide="copy" class="w-4 h-4"></i>
+            Copy Tracked Link
+          </button>
+          <a id="modal-apply-btn" href="#" target="_blank" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+            Open Referral Page
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Script -->
+  <script>
+    let allJobs = [];
+    let allConnections = [];
+    let activeFilter = 'all';
+    let searchQuery = '';
+    let sortOption = 'reward_desc';
+
+    let connSearchQuery = '';
+    let connMinReward = 0;
+    let connTopOnly = true;
+
+    let selectedCandidateForIntro = null;
+
+    const fullReferralCode = 'b3967e16-757e-4cb1-9bc6-bda6a63f6627';
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-message').textContent = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText(fullReferralCode);
+      showToast('Referral code copied to clipboard!');
+    }
+
+    function copyLink(url) {
+      navigator.clipboard.writeText(url);
+      showToast('Referral URL copied with your tracking code attached!');
+    }
+
+    async function loadStats() {
+      try {
+        const [jobsRes, connRes] = await Promise.all([
+          fetch('/api/stats'),
+          fetch('/api/connections/stats')
+        ]);
+        const data = await jobsRes.json();
+        const connData = await connRes.json();
+
+        // Jobs stats
+        document.getElementById('stat-total-jobs').textContent = data.jobs.total;
+        document.getElementById('stat-high-demand').textContent = `${data.jobs.totalOpenings.toLocaleString()} openings globally`;
+        document.getElementById('jobs-tab-count').textContent = data.jobs.total;
+
+        // CRM stats
+        document.getElementById('stat-ref-count').textContent = data.referrals.total;
+        document.getElementById('stat-ref-earned').textContent = `($${Number(data.referrals.earned).toLocaleString()} earned)`;
+        document.getElementById('stat-ref-potential').textContent = `$${Number(data.referrals.pendingPotential).toLocaleString()} in pipeline`;
+        document.getElementById('crm-tab-count').textContent = data.referrals.total;
+
+        // Connections stats
+        document.getElementById('stat-conn-total').textContent = Number(connData.total).toLocaleString();
+        document.getElementById('stat-conn-potential').textContent = `$${Number(connData.totalPotential).toLocaleString()}`;
+        document.getElementById('stat-conn-matched').textContent = `${Number(connData.matched).toLocaleString()} qualified matches`;
+        document.getElementById('conn-tab-badge').textContent = Number(connData.matched).toLocaleString();
+      } catch (err) {
+        console.error('Error loading stats:', err);
+      }
+    }
+
+    // ==========================================
+    // CONNECTIONS (MERCOR TABLE)
+    // ==========================================
+    async function loadConnections() {
+      try {
+        const params = new URLSearchParams({
+          q: connSearchQuery,
+          min_earnings: connMinReward,
+          top_match_only: connTopOnly,
+          limit: 100
+        });
+
+        const res = await fetch(`/api/connections?${params.toString()}`);
+        allConnections = await res.json();
+        renderConnections(allConnections);
+      } catch (err) {
+        console.error('Error loading connections:', err);
+      }
+    }
+
+    function renderConnections(connections) {
+      const tbody = document.getElementById('connections-tbody');
+      const empty = document.getElementById('conn-empty');
+
+      if (!connections || connections.length === 0) {
+        tbody.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      tbody.innerHTML = connections.map(c => {
+        const matches = Array.isArray(c.matched_jobs) ? c.matched_jobs : [];
+        const topMatch = matches[0] || null;
+        const potential = Number(c.max_potential_earnings || 0);
+
+        const initials = (c.first_name?.[0] || '') + (c.last_name?.[0] || 'C');
+
+        return `
+          <tr class="hover:bg-slate-800/50 transition-colors">
+            <!-- Connection Info -->
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-bold text-white text-xs shrink-0 shadow">
+                  ${initials}
+                </div>
+                <div>
+                  <div class="font-bold text-white text-sm flex items-center gap-2">
+                    ${escapeHtml(c.full_name)}
+                    ${c.status === 'Intro Sent' ? `
+                      <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        Intro Sent
+                      </span>
+                    ` : ''}
+                    ${c.status === 'Vouched' ? `
+                      <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                        Vouched
+                      </span>
+                    ` : ''}
+                  </div>
+                  <div class="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
+                    ${escapeHtml(c.position || 'Professional')} ${c.company ? `• <span class="text-slate-300">${escapeHtml(c.company)}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Matches List (Mercor Style) -->
+            <td class="py-4 px-5">
+              <div class="space-y-1.5 max-w-sm">
+                ${matches.slice(0, 3).map(m => `
+                  <div class="flex items-center justify-between gap-2 p-1.5 bg-slate-900/70 border border-slate-700/60 rounded-lg text-xs">
+                    <span class="text-slate-200 truncate font-medium">${escapeHtml(m.name)}</span>
+                    <div class="flex items-center gap-1 shrink-0">
+                      <span class="font-bold text-emerald-400 text-[11px]">+$${Number(m.reward).toLocaleString()}</span>
+                      <button onclick="copyLink('${m.url}')" title="Copy tracked referral link" class="p-1 text-slate-400 hover:text-white">
+                        <i data-lucide="copy" class="w-3 h-3"></i>
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+                ${matches.length > 3 ? `
+                  <span class="text-[10px] text-slate-500 font-medium pl-1">+${matches.length - 3} more matching roles</span>
+                ` : ''}
+                ${matches.length === 0 ? `
+                  <span class="text-slate-500 text-xs">No direct match</span>
+                ` : ''}
+              </div>
+            </td>
+
+            <!-- Potential Earnings -->
+            <td class="py-4 px-5">
+              <div class="text-base font-bold text-emerald-400 flex items-center gap-1">
+                $${potential.toLocaleString()}
+                <i data-lucide="arrow-down-right" class="w-3.5 h-3.5 text-emerald-500"></i>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Top bounty opportunity</div>
+            </td>
+
+            <!-- Reach Out (Mercor Style: in icon + m Intro button) -->
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-2">
+                ${c.linkedin_url ? `
+                  <a href="${c.linkedin_url}" target="_blank" title="View LinkedIn Profile" class="w-8 h-8 rounded-xl bg-[#0077b5] hover:bg-[#006097] text-white flex items-center justify-center transition-all shadow-sm shrink-0">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                  </a>
+                ` : ''}
+
+                <button onclick="quickLaunchIntro(${c.id})" title="Click to copy message & open direct LinkedIn chat" class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-900 border border-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
+                  <span class="w-4 h-4 rounded bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px]">m</span>
+                  <span>Intro</span>
+                </button>
+
+                <button onclick="openIntroModal(${c.id})" title="Preview & edit message" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-medium">
+                  Preview
+                </button>
+                ${c.email ? `
+                  <a href="mailto:${c.email}?subject=micro1%20AI%20Project%20Opportunity&body=${encodeURIComponent('Hi ' + (c.first_name || 'there') + ',\n\nI am collaborating with micro1 on top AI projects. Thought of you for this remote role: ' + (topMatch ? topMatch.name : 'AI Specialist') + '.\n\nApply directly here: ' + (topMatch ? topMatch.url : 'https://jobs.micro1.ai') + '\n\nBest,\nRamakrishna')}" title="Email: ${c.email}" class="p-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 rounded-xl text-indigo-400 hover:text-indigo-300">
+                    <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+                  </a>
+                ` : ''}
+              </div>
+            </td>
+
+            <!-- Know Them Well / Vouch -->
+            <!-- Know Them Well / Vouch & Delete -->
+            <td class="py-4 px-5 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                <button onclick="vouchCandidate(${c.id})" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-medium transition-all active:scale-95">
+                  ${c.status === 'Vouched' ? '✓ Vouched' : 'Vouch'}
+                </button>
+                <button onclick="deleteConnectionItem(${c.id}, '${escapeHtml(c.full_name)}')" title="Delete from list" class="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function handleConnSearch() {
+      connSearchQuery = document.getElementById('conn-search-input').value;
+      loadConnections();
+    }
+
+    function filterConnsByTop() {
+      connTopOnly = true;
+      document.getElementById('conn-filter-top').className = 'px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white flex items-center gap-1.5 shadow-md shadow-indigo-600/30';
+      document.getElementById('conn-filter-all').className = 'px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700';
+      loadConnections();
+    }
+
+    function filterConnsAll() {
+      connTopOnly = false;
+      document.getElementById('conn-filter-all').className = 'px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white flex items-center gap-1.5 shadow-md shadow-indigo-600/30';
+      document.getElementById('conn-filter-top').className = 'px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700';
+      loadConnections();
+    }
+
+    function setConnRewardFilter(amount) {
+      connMinReward = amount;
+      document.querySelectorAll('.conn-rew-btn').forEach(b => {
+        b.classList.remove('bg-indigo-600', 'text-white');
+        b.classList.add('text-slate-300', 'bg-slate-900');
+      });
+      const active = document.getElementById(`conn-rew-${amount}`);
+      if (active) {
+        active.classList.remove('text-slate-300', 'bg-slate-900');
+        active.classList.add('bg-indigo-600', 'text-white');
+      }
+      loadConnections();
+    }
+
+    // Modal: micro1 Intro Composer
+    async function openIntroModal(connId) {
+      const conn = allConnections.find(c => c.id === connId);
+      if (!conn) return;
+      selectedCandidateForIntro = conn;
+
+      const matches = Array.isArray(conn.matched_jobs) ? conn.matched_jobs : [];
+      const topRole = matches[0] || { name: 'AI Contributor / Specialist', reward: 1000, url: 'https://jobs.micro1.ai' };
+
+      document.getElementById('intro-avatar').textContent = (conn.first_name?.[0] || '') + (conn.last_name?.[0] || 'C');
+      document.getElementById('intro-candidate-name').textContent = conn.full_name;
+      document.getElementById('intro-candidate-meta').textContent = `${conn.position || 'Professional'} ${conn.company ? `at ${conn.company}` : ''}`;
+      
+      document.getElementById('intro-job-title').textContent = topRole.name;
+      document.getElementById('intro-job-reward').textContent = `+$${Number(topRole.reward).toLocaleString()}`;
+      
+      const linkedinLink = document.getElementById('intro-linkedin-link');
+      if (conn.linkedin_url) {
+        linkedinLink.href = conn.linkedin_url;
+        linkedinLink.classList.remove('hidden');
+      } else {
+        linkedinLink.classList.add('hidden');
+      }
+
+      // Initial clean URL (strip bulky UTM parameters)
+      let linkToUse = topRole.url.replace(/&utm_[^&]+/g, '').replace(/\?utm_[^&]+&/, '?');
+
+      function formatFirstName(raw) {
+        if (!raw) return 'there';
+        const first = raw.trim().split(/\s+/)[0].replace(/[^a-zA-Z\u00C0-\u024F]/g, '');
+        if (!first) return 'there';
+        return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+      }
+
+      function composeMessage(url) {
+        const firstName = formatFirstName(conn.first_name || conn.full_name);
+        const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
+
+        let payDisplay = "Competitive rate paid in USD";
+        if (topRole.rate_max && topRole.rate_max > 0) {
+          if (topRole.rate_min && topRole.rate_min > 0) {
+            payDisplay = `$${topRole.rate_min} – $${topRole.rate_max}/hr USD (depending on experience)`;
+          } else {
+            payDisplay = `Up to $${topRole.rate_max}/hr USD (depending on experience)`;
+          }
+        }
+
+        return `Hi ${firstName},\n\nWe run an AI talent network connecting top specialists with tier-1 global AI research projects.\n\nWe're currently onboarding for:\n${roleName}\n\n• Setup: 100% Remote\n• Commitment: Flexible hours (Part-time or Full-time, can be done alongside your current role)\n• Pay: ${payDisplay}\n\nIf you're interested in exploring this, you can view the scope and apply directly here:\n${url}\n\nApplications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
+      }
+
+      document.getElementById('intro-message-text').value = composeMessage(linkToUse);
+      document.getElementById('intro-modal').classList.remove('hidden');
+      document.getElementById('intro-modal').classList.add('flex');
+
+      // Fetch TinyURL short link asynchronously
+      try {
+        const res = await fetch(`/api/shorten?url=${encodeURIComponent(linkToUse)}`);
+        const data = await res.json();
+        if (data.shortUrl) {
+          document.getElementById('intro-message-text').value = composeMessage(data.shortUrl);
+        }
+      } catch (e) {
+        // Keep initial clean URL
+      }
+    }
+
+    function closeIntroModal() {
+      document.getElementById('intro-modal').classList.add('hidden');
+      document.getElementById('intro-modal').classList.remove('flex');
+    }
+
+    async function copyIntroMessage() {
+      const text = document.getElementById('intro-message-text').value;
+      await navigator.clipboard.writeText(text);
+      
+      if (selectedCandidateForIntro) {
+        await fetch(`/api/connections/${selectedCandidateForIntro.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'Intro Sent' })
+        });
+        showToast(`Message copied & status updated to "Intro Sent"!`);
+      } else {
+        showToast('Outreach message copied to clipboard!');
+      }
+
+      closeIntroModal();
+      loadConnections();
+      loadStats();
+    }
+
+    let pacingTimer = null;
+    let pacingSeconds = 0;
+
+    function startPacingTimer() {
+      if (pacingTimer) clearInterval(pacingTimer);
+      pacingSeconds = 25;
+      const dot = document.getElementById('pacing-dot');
+      const text = document.getElementById('pacing-text');
+
+      dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+      text.className = 'font-semibold text-amber-400';
+      text.textContent = `Safe Pace: Wait ${pacingSeconds}s`;
+
+      pacingTimer = setInterval(() => {
+        pacingSeconds--;
+        if (pacingSeconds <= 0) {
+          clearInterval(pacingTimer);
+          pacingTimer = null;
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+          text.className = 'font-semibold text-emerald-400';
+          text.textContent = 'Pacing: Ready (Safe)';
+        } else {
+          text.textContent = `Safe Pace: Wait ${pacingSeconds}s`;
+        }
+      }, 1000);
+    }
+
+    async function quickLaunchIntro(connId) {
+      const conn = allConnections.find(c => c.id === connId);
+      if (!conn) return;
+
+      const matches = Array.isArray(conn.matched_jobs) ? conn.matched_jobs : [];
+      const topRole = matches[0] || { name: 'AI Contributor / Specialist', reward: 1000, url: 'https://jobs.micro1.ai' };
+
+      // Initial clean link
+      let linkToUse = topRole.url.replace(/&utm_[^&]+/g, '').replace(/\?utm_[^&]+&/, '?');
+
+      // Try fetching tinyurl quickly
+      try {
+        const res = await fetch(`/api/shorten?url=${encodeURIComponent(linkToUse)}`);
+        const data = await res.json();
+        if (data.shortUrl) linkToUse = data.shortUrl;
+      } catch (e) {}
+
+      function formatFirstName(raw) {
+        if (!raw) return 'there';
+        const first = raw.trim().split(/\s+/)[0].replace(/[^a-zA-Z\u00C0-\u024F]/g, '');
+        if (!first) return 'there';
+        return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+      }
+
+      const firstName = formatFirstName(conn.first_name || conn.full_name);
+      const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
+
+      let payDisplay = "Competitive rate paid in USD";
+      if (topRole.rate_max && topRole.rate_max > 0) {
+        if (topRole.rate_min && topRole.rate_min > 0) {
+          payDisplay = `$${topRole.rate_min} – $${topRole.rate_max}/hr USD (depending on experience)`;
+        } else {
+          payDisplay = `Up to $${topRole.rate_max}/hr USD (depending on experience)`;
+        }
+      }
+
+      const msg = `Hi ${firstName},\n\nWe run an AI talent network connecting top specialists with tier-1 global AI research projects.\n\nWe're currently onboarding for:\n${roleName}\n\n• Setup: 100% Remote\n• Commitment: Flexible hours (Part-time or Full-time, can be done alongside your current role)\n• Pay: ${payDisplay}\n\nIf you're interested in exploring this, you can view the scope and apply directly here:\n${linkToUse}\n\nApplications are fast-tracked and reviewed directly by our AI team, and we'll reach out if there's a match.`;
+
+      // Copy exact message to clipboard
+      await navigator.clipboard.writeText(msg);
+
+      // Extract LinkedIn recipient username/slug
+      const slugMatch = (conn.linkedin_url || '').match(/\/in\/([^/?#]+)/);
+      const directMessageUrl = slugMatch
+        ? `https://www.linkedin.com/messaging/thread/new/?recipient=${slugMatch[1]}`
+        : (conn.linkedin_url || 'https://www.linkedin.com/messaging/');
+
+      // Open LinkedIn direct message screen in new tab
+      window.open(directMessageUrl, '_blank');
+
+      // Update status to Intro Sent
+      await fetch(`/api/connections/${conn.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Intro Sent' })
+      });
+
+      // Start pacing timer
+      startPacingTimer();
+
+      showToast(`📋 Message copied for ${firstName}! Opening direct LinkedIn chat — press Cmd+V to paste & Send!`);
+
+      loadConnections();
+      loadStats();
+    }
+
+    async function vouchCandidate(connId) {
+      await fetch(`/api/connections/${connId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Vouched' })
+      });
+      showToast('Candidate vouched!');
+      loadConnections();
+      loadStats();
+    }
+
+    async function deleteConnectionItem(connId, name) {
+      if (!confirm(`Remove ${name} from your referral list?`)) return;
+      try {
+        const res = await fetch(`/api/connections/${connId}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast(`Removed ${name} from list`);
+          loadConnections();
+          loadStats();
+        }
+      } catch (e) {
+        showToast('Error removing connection');
+      }
+    }
+
+    // ==========================================
+    // JOBS BROWSER
+    // ==========================================
+    async function loadJobs() {
+      try {
+        const params = new URLSearchParams({
+          q: searchQuery,
+          sort: sortOption,
+          limit: 300
+        });
+        if (activeFilter === 'high-reward') params.append('min_reward', '1000');
+        if (activeFilter === 'high-demand') params.append('high_demand', 'true');
+        if (activeFilter === 'global') params.append('location', 'Global');
+        if (activeFilter === 'us') params.append('location', 'US');
+
+        const res = await fetch(`/api/jobs?${params.toString()}`);
+        allJobs = await res.json();
+        renderJobs(allJobs);
+      } catch (err) {
+        console.error('Error loading jobs:', err);
+      }
+    }
+
+    function renderJobs(jobs) {
+      const container = document.getElementById('jobs-container');
+      const empty = document.getElementById('empty-state');
+
+      if (!jobs || jobs.length === 0) {
+        container.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      container.innerHTML = jobs.map(job => {
+        const reward = Number(job.referral_reward_amount || 0);
+        const rewardClass = reward >= 2000 ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
+                            reward >= 1000 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
+                            'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+        
+        const rateText = job.ideal_hourly_rate_min ? `$${job.ideal_hourly_rate_min} - $${job.ideal_hourly_rate_max}/hr` : 'Contract Rate';
+        const skillsList = Array.isArray(job.skills) ? job.skills.slice(0, 4) : [];
+        const locationText = job.location || 'Remote (Global)';
+
+        return `
+          <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 hover:border-indigo-500/50 transition-all flex flex-col justify-between group shadow-sm hover:shadow-indigo-500/5">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold border ${rewardClass}">
+                  +$${reward.toLocaleString()} Reward
+                </span>
+                ${job.is_high_demand ? `
+                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span> High Demand
+                  </span>
+                ` : ''}
+              </div>
+
+              <h3 class="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors line-clamp-2">
+                ${escapeHtml(job.job_name)}
+              </h3>
+
+              <div class="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-2">
+                <span class="flex items-center gap-1">
+                  <i data-lucide="users" class="w-3.5 h-3.5 text-slate-500"></i>
+                  ${job.no_of_openings} openings
+                </span>
+                <span>•</span>
+                <span class="text-slate-300 font-medium">${rateText}</span>
+              </div>
+
+              <!-- Location Tag -->
+              <div class="mt-2.5">
+                <span class="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-0.5 rounded-md bg-slate-900/90 text-indigo-300 border border-slate-700/80">
+                  <i data-lucide="map-pin" class="w-3 h-3 text-indigo-400 shrink-0"></i>
+                  <span class="truncate max-w-[240px]">${escapeHtml(locationText)}</span>
+                </span>
+              </div>
+
+              <!-- Skills tags -->
+              <div class="flex flex-wrap gap-1.5 mt-3.5">
+                ${skillsList.map(s => `
+                  <span class="text-[11px] px-2 py-0.5 rounded-md bg-slate-900/90 text-slate-300 border border-slate-700">
+                    ${escapeHtml(s)}
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="pt-5 mt-4 border-t border-slate-700/60 flex items-center justify-between gap-2">
+              <button onclick="openJobModal('${job.job_id}')" class="text-xs font-medium text-slate-400 hover:text-white flex items-center gap-1">
+                View Details
+              </button>
+
+              <div class="flex items-center gap-1.5">
+                <button onclick="copyLink('${job.referral_url}')" title="Copy Referral Link" class="p-2 bg-slate-700/80 hover:bg-slate-600 rounded-lg text-slate-200 transition-all active:scale-95">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                </button>
+                <a href="${job.referral_url}" target="_blank" title="Test & Open Referral Link" class="p-2 bg-slate-700/80 hover:bg-slate-600 rounded-lg text-slate-200 transition-all active:scale-95">
+                  <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function handleSearch() {
+      searchQuery = document.getElementById('search-input').value;
+      loadJobs();
+    }
+
+    function setFilter(type) {
+      activeFilter = type;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white');
+        btn.classList.add('text-slate-300', 'bg-slate-900');
+      });
+      const activeBtn = document.getElementById(`filter-${type}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-300', 'bg-slate-900');
+        activeBtn.classList.add('bg-indigo-600', 'text-white');
+      }
+      loadJobs();
+    }
+
+    function handleSort() {
+      sortOption = document.getElementById('sort-select').value;
+      loadJobs();
+    }
+
+    function switchTab(tab) {
+      const viewConnections = document.getElementById('view-connections');
+      const viewJobs = document.getElementById('view-jobs');
+      const viewCrm = document.getElementById('view-crm');
+      
+      const tabConnections = document.getElementById('tab-connections');
+      const tabJobs = document.getElementById('tab-jobs');
+      const tabCrm = document.getElementById('tab-crm');
+
+      const activeClass = 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/30 flex items-center gap-2';
+      const inactiveClass = 'px-4 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2';
+
+      viewConnections.classList.add('hidden');
+      viewJobs.classList.add('hidden');
+      viewCrm.classList.add('hidden');
+
+      tabConnections.className = inactiveClass;
+      tabJobs.className = inactiveClass;
+      tabCrm.className = inactiveClass;
+
+      if (tab === 'connections') {
+        viewConnections.classList.remove('hidden');
+        tabConnections.className = activeClass;
+        loadConnections();
+      } else if (tab === 'jobs') {
+        viewJobs.classList.remove('hidden');
+        tabJobs.className = activeClass;
+        loadJobs();
+      } else if (tab === 'crm') {
+        viewCrm.classList.remove('hidden');
+        tabCrm.className = activeClass;
+        loadReferrals();
+      }
+    }
+
+    // Modal logic for jobs
+    function openJobModal(jobId) {
+      const job = allJobs.find(j => j.job_id === jobId);
+      if (!job) return;
+
+      document.getElementById('modal-reward-badge').textContent = `+$${Number(job.referral_reward_amount).toLocaleString()} Reward`;
+      document.getElementById('modal-job-title').textContent = job.job_name;
+      document.getElementById('modal-job-meta').textContent = `📍 ${job.location || 'Remote (Global)'} • ${job.no_of_openings} Openings • Posted ${job.date_posted || 'Recently'}`;
+      document.getElementById('modal-job-desc').innerHTML = job.job_description || '<p>No detailed description provided.</p>';
+      
+      const copyBtn = document.getElementById('modal-copy-btn');
+      copyBtn.onclick = () => copyLink(job.referral_url);
+
+      const applyBtn = document.getElementById('modal-apply-btn');
+      applyBtn.href = job.referral_url;
+
+      document.getElementById('job-modal').classList.remove('hidden');
+      document.getElementById('job-modal').classList.add('flex');
+    }
+
+    function closeJobModal() {
+      document.getElementById('job-modal').classList.add('hidden');
+      document.getElementById('job-modal').classList.remove('flex');
+    }
+
+    // Candidate Referrals CRM
+    async function loadReferrals() {
+      try {
+        const res = await fetch('/api/referrals');
+        const list = await res.json();
+        const tbody = document.getElementById('referrals-tbody');
+
+        if (!list || list.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="text-center py-8 text-slate-500">
+                No candidate referrals logged yet. Click "Intro" on your connections to reach out and track!
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = list.map(ref => {
+          return `
+            <tr class="hover:bg-slate-800/40 transition-colors">
+              <td class="py-3.5 px-5">
+                <div class="font-semibold text-white">${escapeHtml(ref.candidate_name)}</div>
+                <div class="text-[11px] text-slate-400">${escapeHtml(ref.candidate_email || 'No email')}</div>
+              </td>
+              <td class="py-3.5 px-5">
+                <div class="text-slate-200">${escapeHtml(ref.job_name)}</div>
+              </td>
+              <td class="py-3.5 px-5">
+                <span class="px-2 py-1 rounded text-xs bg-slate-900 border border-slate-700 text-slate-200">${ref.status}</span>
+              </td>
+              <td class="py-3.5 px-5 font-bold text-emerald-400">
+                +$${Number(ref.reward_amount || 0).toLocaleString()}
+              </td>
+              <td class="py-3.5 px-5 text-slate-400">
+                ${(ref.created_at || '').substring(0, 10)}
+              </td>
+              <td class="py-3.5 px-5 text-right">
+                <button onclick="deleteRef(${ref.id})" class="text-rose-400 hover:text-rose-300 p-1">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error loading referrals:', err);
+      }
+    }
+
+    // Trigger sync
+    async function triggerSync() {
+      const btn = document.getElementById('sync-btn');
+      const icon = document.getElementById('sync-icon');
+      const text = document.getElementById('sync-text');
+
+      icon.classList.add('animate-spin');
+      text.textContent = 'Syncing...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/sync', { method: 'POST' });
+        const data = await res.json();
+        showToast(`Sync complete! ${data.totalSynced} jobs updated in SQLite.`);
+        loadStats();
+        loadJobs();
+        loadConnections();
+      } catch (err) {
+        showToast('Sync failed: ' + err.message);
+      } finally {
+        icon.classList.remove('animate-spin');
+        text.textContent = 'Sync Jobs';
+        btn.disabled = false;
+      }
+    }
+
+    // Init on page load
+    window.onload = () => {
+      loadStats();
+      loadConnections();
+      loadJobs();
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>
