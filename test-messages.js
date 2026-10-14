@@ -98,15 +98,32 @@ async function runTests() {
   }
   console.log('✓ PASS: Every candidate has strictly ONE single highest-value job assigned.\n');
 
-  // 2. Sample diverse persona cases including BigLaw Attorney
+  // 2. Sample diverse persona cases including BigLaw Attorney, VC Investor, and Clinical MD
   const sampleQueries = [
-    { label: 'BigLaw Attorney / Legal Counsel', condition: "position LIKE '%Lawyer%' OR position LIKE '%Attorney%' OR position LIKE '%Counsel%' OR position LIKE '%Legal%'" },
-    { label: 'Physician / Medical AI Trainer', condition: "position LIKE '%Physician%' OR position LIKE '%Doctor%' OR position LIKE '%Medical%'" },
-    { label: 'AI Researcher / Scientist', condition: "position LIKE '%Research%' OR position LIKE '%Scientist%' OR position LIKE '%AI%'" },
-    { label: 'Enterprise / Partnerships Leader', condition: "position LIKE '%Partner%' OR position LIKE '%Sales%' OR position LIKE '%GTM%'" },
-    { label: 'Software / Engineering Specialist', condition: "position LIKE '%Engineer%' OR position LIKE '%Developer%'" },
+    { label: 'Venture Capital / Software Investor', condition: "position LIKE '%Investor%' OR position LIKE '%Venture Capital%'" },
+    { label: 'BigLaw Attorney / Legal Counsel', condition: "(position LIKE '%Lawyer%' OR position LIKE '%Attorney%' OR position LIKE '%Legal Counsel%') AND position NOT LIKE '%Investor%'" },
+    { label: 'Immigration Attorney Specialist', condition: "position LIKE '%Immigration Attorney%'" },
+    { label: 'Physician / Medical AI Trainer', condition: "position LIKE '%Physician%' OR position LIKE '%Hospitalist%'" },
+    { label: 'AI Researcher / Scientist', condition: "position LIKE '%Research Scientist%' OR position LIKE '%Computational Physics%'" },
+    { label: 'Enterprise / Partnerships Leader', condition: "position LIKE '%Strategic Partner%' OR position LIKE '%Enterprise%'" },
+    { label: 'Software / Engineering Specialist', condition: "position LIKE '%Software Engineer%' OR position LIKE '%Developer%'" },
     { label: 'Recruiter / Talent Professional', condition: "position LIKE '%Recruiter%' OR position LIKE '%Talent%'" }
   ];
+
+  // 2b. Assert Domain Barrier Guardrails across the whole database
+  console.log('[Domain Isolation] Verifying 0 Investors matched to Lawyers...');
+  const investorLawyerOverlap = querySqlite("SELECT count(*) FROM connections WHERE (position LIKE '%Investor%' OR position LIKE '%Venture Capital%') AND (matched_jobs LIKE '%Lawyer%' OR matched_jobs LIKE '%Attorney%');");
+  if (Number(investorLawyerOverlap) !== 0) {
+    throw new Error(`Domain Barrier Violation: ${investorLawyerOverlap} investors matched to lawyer roles!`);
+  }
+  console.log('✓ PASS: 0 Investors matched to BigLaw lawyers (100% Isolated).\n');
+
+  console.log('[Domain Isolation] Verifying 0 Veterinarians matched to Human Clinical MD roles...');
+  const vetDoctorOverlap = querySqlite("SELECT count(*) FROM connections WHERE position LIKE '%Veterinar%' AND (matched_jobs LIKE '%Physician%' OR matched_jobs LIKE '%Hospitalist%' OR matched_jobs LIKE '%Psychiatrist%');");
+  if (Number(vetDoctorOverlap) !== 0) {
+    throw new Error(`Domain Barrier Violation: ${vetDoctorOverlap} veterinarians matched to human physician roles!`);
+  }
+  console.log('✓ PASS: 0 Veterinarians matched to human clinical medicine roles (100% Isolated).\n');
 
   const testResults = [];
 
