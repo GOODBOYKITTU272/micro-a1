@@ -354,11 +354,43 @@
         </a>
 
         <div class="flex items-center gap-2">
-          <button onclick="copyIntroMessage()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-600/30">
-            <i data-lucide="copy" class="w-4 h-4"></i>
-            Copy Message & Track
+          <button onclick="copyIntroTextOnly()" title="Copy text only without changing candidate status" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 hover:text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all active:scale-95">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            Copy Text Only
+          </button>
+          <button onclick="copyIntroMessageAndTrack()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition-all active:scale-95">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            Copy & Mark Intro Sent
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: VOUCH CONFIRMATION MODAL            -->
+  <!-- ========================================== -->
+  <div id="vouch-confirm-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col p-6 animate-in fade-in zoom-in-95 duration-150">
+      <div class="flex items-center gap-3 mb-4">
+        <div id="vouch-modal-icon-bg" class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold">
+          <i data-lucide="award" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 id="vouch-modal-title" class="text-base font-bold text-white">Confirm Candidate Vouch</h3>
+          <p class="text-xs text-slate-400">micro1 Priority Endorsement</p>
+        </div>
+      </div>
+      <p id="vouch-modal-text" class="text-xs text-slate-300 leading-relaxed mb-6">
+        <!-- Injected via JS -->
+      </p>
+      <div class="flex items-center justify-end gap-3">
+        <button onclick="closeVouchModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold rounded-xl transition-all">
+          Cancel
+        </button>
+        <button id="vouch-modal-confirm-btn" onclick="executeVouchAction()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-purple-600/30 transition-all">
+          Yes, Vouch
+        </button>
       </div>
     </div>
   </div>
@@ -516,12 +548,12 @@
                 <div>
                   <div class="font-bold text-white text-sm flex items-center gap-2">
                     ${escapeHtml(c.full_name)}
-                    ${c.status === 'Intro Sent' ? `
+                    ${c.status && c.status.includes('Intro Sent') ? `
                       <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                         Intro Sent
                       </span>
                     ` : ''}
-                    ${c.status === 'Vouched' ? `
+                    ${c.status && c.status.includes('Vouched') ? `
                       <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
                         Vouched
                       </span>
@@ -591,12 +623,11 @@
               </div>
             </td>
 
-            <!-- Know Them Well / Vouch -->
             <!-- Know Them Well / Vouch & Delete -->
             <td class="py-4 px-5 text-right">
               <div class="flex items-center justify-end gap-1.5">
-                <button onclick="vouchCandidate(${c.id})" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-medium transition-all active:scale-95">
-                  ${c.status === 'Vouched' ? '✓ Vouched' : 'Vouch'}
+                <button onclick="openVouchConfirmation(${c.id}, '${escapeHtml(c.full_name)}', ${c.status && c.status.includes('Vouched') ? 'true' : 'false'})" class="px-3 py-1.5 ${c.status && c.status.includes('Vouched') ? 'bg-purple-600/30 hover:bg-purple-600/40 border-purple-500/50 text-purple-200' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 hover:text-white'} border rounded-xl text-xs font-medium transition-all active:scale-95">
+                  ${c.status && c.status.includes('Vouched') ? '✓ Vouched' : 'Vouch'}
                 </button>
                 <button onclick="deleteConnectionItem(${c.id}, '${escapeHtml(c.full_name)}')" title="Delete from list" class="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all">
                   <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -783,17 +814,25 @@
       document.getElementById('intro-modal').classList.remove('flex');
     }
 
-    async function copyIntroMessage() {
+    async function copyIntroTextOnly() {
+      const text = document.getElementById('intro-message-text').value;
+      await navigator.clipboard.writeText(text);
+      showToast('📋 Message text copied to clipboard! (Status untouched)');
+    }
+
+    async function copyIntroMessageAndTrack() {
       const text = document.getElementById('intro-message-text').value;
       await navigator.clipboard.writeText(text);
       
       if (selectedCandidateForIntro) {
+        const currentStatus = selectedCandidateForIntro.status || 'New';
+        const newStatus = currentStatus.includes('Vouched') ? 'Intro Sent & Vouched' : 'Intro Sent';
         await fetch(`/api/connections/${selectedCandidateForIntro.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'Intro Sent' })
+          body: JSON.stringify({ status: newStatus })
         });
-        showToast(`Message copied & status updated to "Intro Sent"!`);
+        showToast(`Message copied & status marked as "Intro Sent"!`);
       } else {
         showToast('Outreach message copied to clipboard!');
       }
@@ -801,6 +840,10 @@
       closeIntroModal();
       loadConnections();
       loadStats();
+    }
+
+    async function copyIntroMessage() {
+      return copyIntroMessageAndTrack();
     }
 
     let pacingTimer = null;
@@ -847,7 +890,6 @@
         if (data.shortUrl) linkToUse = data.shortUrl;
       } catch (e) {}
 
-
       const firstName = formatFirstName(conn.first_name || conn.full_name);
       const roleName = (topRole.name || 'AI Specialist').trim().replace(/\s+/g, ' ');
       const payDisplay = getRolePayDisplay(topRole);
@@ -866,11 +908,14 @@
       // Open LinkedIn direct message screen in new tab
       window.open(directMessageUrl, '_blank');
 
-      // Update status to Intro Sent
+      // Update status to Intro Sent while keeping Vouched intact if already vouched!
+      const currentStatus = conn.status || 'New';
+      const newStatus = currentStatus.includes('Vouched') ? 'Intro Sent & Vouched' : 'Intro Sent';
+
       await fetch(`/api/connections/${conn.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Intro Sent' })
+        body: JSON.stringify({ status: newStatus })
       });
 
       // Start pacing timer
@@ -882,13 +927,62 @@
       loadStats();
     }
 
-    async function vouchCandidate(connId) {
-      await fetch(`/api/connections/${connId}`, {
+    let pendingVouchConnId = null;
+    let pendingVouchIsRemoving = false;
+
+    function openVouchConfirmation(connId, candidateName, currentlyVouched) {
+      pendingVouchConnId = connId;
+      pendingVouchIsRemoving = !!currentlyVouched;
+
+      const modal = document.getElementById('vouch-confirm-modal');
+      const title = document.getElementById('vouch-modal-title');
+      const text = document.getElementById('vouch-modal-text');
+      const btn = document.getElementById('vouch-modal-confirm-btn');
+
+      if (pendingVouchIsRemoving) {
+        title.textContent = 'Remove Candidate Vouch';
+        text.innerHTML = `Are you sure you want to remove your personal vouch for <strong class="text-white">${escapeHtml(candidateName)}</strong>?`;
+        btn.textContent = 'Yes, Remove Vouch';
+        btn.className = 'px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-rose-600/30 transition-all active:scale-95';
+      } else {
+        title.textContent = 'Confirm Candidate Vouch';
+        text.innerHTML = `Are you sure you want to vouch for <strong class="text-white">${escapeHtml(candidateName)}</strong>?<br><br>Vouching signals to the micro1 AI research team that you personally know this candidate and strongly endorse them for this opportunity.`;
+        btn.textContent = 'Yes, Vouch Candidate';
+        btn.className = 'px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-purple-600/30 transition-all active:scale-95';
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeVouchModal() {
+      const modal = document.getElementById('vouch-confirm-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      pendingVouchConnId = null;
+    }
+
+    async function executeVouchAction() {
+      if (!pendingVouchConnId) return;
+      const conn = allConnections.find(c => c.id === pendingVouchConnId);
+      const currentStatus = conn?.status || 'New';
+
+      let newStatus;
+      if (pendingVouchIsRemoving) {
+        newStatus = currentStatus.includes('Intro Sent') ? 'Intro Sent' : 'New';
+      } else {
+        newStatus = currentStatus.includes('Intro Sent') ? 'Intro Sent & Vouched' : 'Vouched';
+      }
+
+      await fetch(`/api/connections/${pendingVouchConnId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Vouched' })
+        body: JSON.stringify({ status: newStatus })
       });
-      showToast('Candidate vouched!');
+
+      closeVouchModal();
+      showToast(pendingVouchIsRemoving ? 'Vouch removed successfully.' : 'Candidate successfully vouched!');
       loadConnections();
       loadStats();
     }

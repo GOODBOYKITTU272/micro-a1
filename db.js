@@ -416,8 +416,8 @@ export function getConnectionStats() {
       SUM(CASE WHEN match_count > 0 THEN 1 ELSE 0 END) AS matched_connections,
       SUM(max_potential_earnings) AS total_potential_earnings,
       MAX(max_potential_earnings) AS max_single_earning,
-      SUM(CASE WHEN status = 'Intro Sent' THEN 1 ELSE 0 END) AS intros_sent,
-      SUM(CASE WHEN status = 'Vouched' THEN 1 ELSE 0 END) AS vouched_count
+      SUM(CASE WHEN status LIKE '%Intro Sent%' THEN 1 ELSE 0 END) AS intros_sent,
+      SUM(CASE WHEN status LIKE '%Vouched%' THEN 1 ELSE 0 END) AS vouched_count
     FROM connections
   `).get();
 
